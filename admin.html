@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Control Panel - Combined Maths Challenge</title>
+ <link rel="icon" href="2.jpg" type="image/png">
+  
+  <link id="font-link" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(315deg, #0d253f, #2c0b4d, #1a1a2e, #0f0c29); --primary-accent: #06b6d4; --secondary-accent: #8b5cf6; --text-primary: #ffffff;
+      --text-secondary: #9ca3af; --glass-bg: rgba(26, 26, 46, 0.7); --glass-border: rgba(255, 255, 255, 0.1); --btn-gradient: linear-gradient(to right, #8b5cf6, #4f46e5); 
+      --correct-color: #34d399; --inactive-color: #ef4444; --hover-shadow: 0 0 15px rgba(6, 182, 212, 0.5); --icon-color: #ffd700;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); background-size: 400% 400%; animation: gradient-animation 60s ease infinite; color: var(--text-primary); opacity: 0; animation: page-fade-in 1s ease-out forwards; }
+    .glassmorphism-glow { background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); box-shadow: 0 0 20px rgba(79, 70, 229, 0.1); }
+    .custom-input, .custom-select { background-color: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); border-radius: 0.375rem; padding: 0.75rem 1rem; width: 100%; color: var(--text-primary); transition: all 0.2s ease-in-out; }
+    .custom-input:focus, .custom-select:focus { outline: none; border-color: var(--primary-accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5); }
+    .tab-content { display: none; } .tab-content.active { display: block; animation: content-fade-in 0.6s ease; }
+    .modal-content { animation: slideInUp 0.3s ease-out; }
+    .file-input-label { cursor: pointer; display: inline-block; padding: 0.5rem 1rem; border-radius: 0.375rem; background-color: var(--primary-accent); color: var(--text-primary); font-weight: 600; transition: transform 0.2s ease; }
+    .file-input-label:hover { transform: scale(1.05); }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--inactive-color); transition: .4s; border-radius: 28px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--correct-color); } input:checked + .slider:before { transform: translateX(22px); }
+    .btn-icon { margin-right: 0.5rem; } .card { transition: transform 0.3s ease, box-shadow 0.3s ease; } .card:hover { transform: translateY(-5px); box-shadow: var(--hover-shadow); }
+    .scroll-container { overflow-y: auto; max-height: 500px; padding-right: 8px; }
+    #save-indicator { transition: opacity 0.5s ease-in-out; }
+    
+    /* IMPROVEMENT: Added new animations */
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes content-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* IMPROVEMENT: Scrollbar styling for a cleaner look */
+    .scroll-container::-webkit-scrollbar { width: 6px; }
+    .scroll-container::-webkit-scrollbar-track { background: transparent; }
+    .scroll-container::-webkit-scrollbar-thumb { background: var(--primary-accent); border-radius: 3px; }
+  </style>
+</head>
+<body class="p-4 md:p-8 transition-colors duration-500">
+  
+  <div id="main-content" class="max-w-7xl mx-auto hidden"> <!-- IMPROVEMENT: Increased max-width slightly for larger screens -->
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <!-- IMPROVEMENT: Made header text responsive -->
+        <h1 class="text-3xl md:text-4xl font-bold text-[var(--primary-accent)] flex items-center"><i class="fas fa-cogs btn-icon"></i> Admin Control Panel</h1>
+        <div id="save-indicator" class="flex items-center gap-2 text-lg text-gray-400 opacity-0 transition-opacity duration-500"><i class="fas fa-check-circle"></i><span></span></div>
+    </header>
+
+    <div class="mb-6 border-b border-[var(--glass-border)]">
+      <!-- IMPROVEMENT: Tabs now scroll horizontally on small screens instead of wrapping awkwardly -->
+      <nav class="flex overflow-x-auto pb-px" aria-label="Tabs">
+        <button onclick="openTab(event, 'dashboard')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-[var(--primary-accent)] text-[var(--primary-accent)]"><i class="fas fa-tachometer-alt btn-icon"></i> Dashboard</button>
+        <button onclick="openTab(event, 'questions')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-question-circle btn-icon"></i> Questions</button>
+        <button onclick="openTab(event, 'settings')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-palette btn-icon"></i> Appearance & Settings</button>
+        <button onclick="openTab(event, 'userdata')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-users btn-icon"></i> User Data</button>
+        <button onclick="openTab(event, 'data_management')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-database btn-icon"></i> Data Management</button>
+      </nav>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="tab-content active glassmorphism-glow p-6 rounded-lg shadow-lg space-y-8">
+        <div class="card p-4">
+          <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] mb-4 flex items-center"><i class="fas fa-chart-bar btn-icon"></i> Stats at a Glance</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-green-400" id="stats-live-users">0</p><p class="text-[var(--text-secondary)]">Live Users</p></div>
+            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-[var(--primary-accent)]" id="stats-total-questions">0</p><p class="text-[var(--text-secondary)]">Active / Total Questions</p></div>
+            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-[var(--primary-accent)]" id="stats-total-users">0</p><p class="text-[var(--text-secondary)]">Total Users</p></div>
+          </div>
+        </div>
+        <div class="card p-4 pt-6 border-t border-[var(--glass-border)]">
+            <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] mb-4 flex items-center"><i class="fas fa-chart-pie btn-icon"></i> Question Bank Overview</h2>
+            <!-- IMPROVEMENT: Made charts responsive -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="bg-black/20 p-4 rounded-lg relative h-64 md:h-80"><canvas id="difficulty-chart"></canvas></div>
+                <div class="bg-black/20 p-4 rounded-lg relative h-64 md:h-80"><canvas id="category-chart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg space-y-8">
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-cog btn-icon"></i> General Settings</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div><label for="titleInput" class="block mb-2 font-semibold">Quiz Title:</label><input type="text" id="titleInput" class="custom-input"></div>
+          <div><label for="timeInput" class="block mb-2 font-semibold">⏱️ Time per question (seconds):</label><input type="number" id="timeInput" class="custom-input" min="5" value="30"></div>
+        </div>
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-paint-brush btn-icon"></i> Appearance</h2>
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div><label class="block mb-2 font-semibold">Color Theme:</label><select id="themeInput" class="custom-select bg-black/30 text-white"><option value="theme-cyberpunk" class="text-black">Cyberpunk</option><option value="theme-nebula" class="text-black">Nebula</option><option value="theme-forest" class="text-black">Forest</option><option value="theme-ocean" class="text-black">Ocean</option><option value="theme-sunset" class="text-black">Sunset</option><option value="theme-sunrise" class="text-black">Sunrise</option><option value="theme-8bit" class="text-black">8-Bit</option><option value="theme-monochrome" class="text-black">Monochrome</option></select></div>
+                <div><label class="block mb-2 font-semibold">Font Style:</label><select id="fontInput" class="custom-select bg-black/30 text-white"><option value="Inter" class="text-black">Inter</option><option value="Roboto" class="text-black">Roboto</option><option value="Lato" class="text-black">Lato</option><option value="Poppins" class="text-black">Poppins</option></select></div>
+                <div><label class="block mb-2 font-semibold">Modal Animation:</label><select id="animationInput" class="custom-select bg-black/30 text-white"><option value="anim-fade" class="text-black">Fade & Scale</option><option value="anim-slide" class="text-black">Slide Up</option><option value="anim-flip" class="text-black">Flip In</option></select></div>
+            </div>
+            <div><label class="block mb-2 font-semibold">Logo:</label><input type="file" id="logoInput" class="w-full text-sm file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-[var(--primary-accent)] file:text-white hover:opacity-90 transition-opacity" accept="image/*"><img id="logoPreview" src="https://via.placeholder.com/150x50.png?text=No+Logo" alt="Logo Preview" class="h-12 mt-2 p-2 bg-black/20 rounded-md"></div>
+            <div><label class="block mb-2 font-semibold">Background:</label><select id="bgChoice" class="custom-select bg-black/30 text-white"><option value="gradient" class="text-black">Theme Gradient</option><option value="image" class="text-black">Custom Image</option></select></div>
+            <div id="bgImageSettings" class="hidden space-y-3">
+                <input type="file" id="bgImageInput" class="w-full text-sm file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-[var(--primary-accent)]" accept="image/*">
+                <label>Background Blur: <span id="bgBlurValue">0</span>px</label><input type="range" id="bgBlurInput" min="0" max="20" value="0" class="w-full">
+            </div>
+        </div>
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-volume-up btn-icon"></i> Audio Settings</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" id="audio-settings-grid"></div>
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-trophy btn-icon"></i> Prize Tiers</h2>
+        <div class="space-y-4" id="prize-tiers-container"></div>
+    </div>
+    
+    <!-- Questions -->
+    <div id="questions" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <h2 class="text-3xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-book btn-icon"></i> Question Bank</h2>
+            <button onclick="showQuestionModal(null)" class="px-5 py-2 font-bold text-white bg-green-600 rounded-md hover:bg-green-700 card w-full sm:w-auto"><i class="fas fa-plus btn-icon"></i> Add New Question</button>
+        </div>
+        <input type="text" id="question-search-input" class="custom-input mb-6" placeholder="🔎 Search questions by text, category, or difficulty...">
+        <div id="questionsList" class="space-y-4 scroll-container"></div>
+    </div>
+    
+    <!-- User Data -->
+    <div id="userdata" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <h2 class="text-3xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-user-friends btn-icon"></i> User Database</h2>
+            <!-- IMPROVEMENT: Button group wraps nicely on mobile -->
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="downloadUserCSV()" class="px-5 py-2 bg-blue-600 rounded-md hover:bg-blue-700 font-bold card"><i class="fas fa-file-csv btn-icon"></i> Download CSV</button>
+                <button onclick="clearAllUsers()" class="px-5 py-2 bg-red-600 rounded-md hover:bg-red-700 font-bold card"><i class="fas fa-trash btn-icon"></i> Clear All</button>
+            </div>
+        </div>
+        <input type="text" id="user-search-input" class="custom-input mb-6" placeholder="🔎 Search by name or school...">
+        <div class="overflow-x-auto scroll-container">
+            <table class="w-full text-left min-w-[600px]"><!-- IMPROVEMENT: Added min-width to prevent squishing on small screens -->
+              <thead class="bg-black/20"><tr><th class="p-3">Name</th><th class="p-3">School</th><th class="p-3 text-center">Rounds Won</th><th class="p-3 text-center">Survival High Score</th><th class="p-3 text-center">Actions</th></tr></thead><tbody id="userDataBody"></tbody></table>
+        </div>
+    </div>
+    
+    <!-- Data Management -->
+    <div id="data_management" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg space-y-8">
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-cogs btn-icon"></i> Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="saveAll()" class="w-full px-6 py-4 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 text-lg card"><i class="fas fa-save btn-icon"></i> Save All Changes</button>
+            <button onclick="resetAllSettings()" class="w-full px-4 py-3 bg-orange-600 rounded-md hover:bg-orange-700 font-bold card"><i class="fas fa-undo btn-icon"></i> Reset All Settings</button>
+        </div>
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-exchange-alt btn-icon"></i> Import / Export</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Full Backup (JSON)</h3><p class="text-sm text-[var(--text-secondary)]">Save/load all settings, questions, and users.</p><div class="flex gap-2 flex-wrap"><button onclick="exportAllData()" class="px-5 py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700"><i class="fas fa-download btn-icon"></i> Export</button><label for="import-data-input" class="file-input-label"><i class="fas fa-upload btn-icon"></i> Import</label><input type="file" id="import-data-input" class="hidden" accept=".json"></div></div>
+            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Questions Only (CSV)</h3><p class="text-sm text-[var(--text-secondary)]">Easily edit questions in a spreadsheet.</p><div class="flex gap-2 flex-wrap"><button onclick="exportQuestionsToCSV()" class="px-5 py-2 font-bold text-white bg-teal-600 rounded-md hover:bg-teal-700"><i class="fas fa-file-csv btn-icon"></i> Export</button><label for="import-questions-csv" class="file-input-label bg-teal-600/80"><i class="fas fa-file-import btn-icon"></i> Import</label><input type="file" id="import-questions-csv" class="hidden" accept=".csv"></div></div>
+        </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- IMPROVEMENT: Modal is now more responsive to screen size -->
+  <div id="questionModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+    <div class="modal-content glassmorphism-glow p-6 rounded-xl w-full max-w-lg lg:max-w-5xl space-y-4 overflow-y-auto max-h-[95vh]">
+      <h3 id="modalTitle" class="text-2xl font-bold text-[var(--primary-accent)]"></h3>
+      <!-- IMPROVEMENT: Modal layout is now a single column on mobile, two columns on larger screens -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <!-- English Inputs -->
+          <div class="p-4 rounded-lg border border-gray-600">
+            <h4 class="font-bold text-lg mb-2 text-gray-300">English (EN)</h4>
+            <div><label class="font-semibold">Question (EN):</label><textarea id="modalQuestion_en" class="custom-input" rows="2" oninput="renderPreview()"></textarea></div>
+            <div class="mt-2"><label class="font-semibold">Options (EN, comma-separated):</label><input id="modalOptions_en" type="text" class="custom-input" oninput="renderPreview()"/></div>
+            <div class="mt-2"><label class="font-semibold">Correct Answer (EN):</label><input id="modalAnswer_en" type="text" class="custom-input" oninput="renderPreview()"/></div>
+            <div class="mt-2"><label class="font-semibold">Explanation (EN):</label><textarea id="modalExplanation_en" class="custom-input" rows="2" oninput="renderPreview()"></textarea></div>
+            <div class="mt-2"><label class="font-semibold">Hint (EN, optional):</label><textarea id="modalHint_en" class="custom-input" rows="1"></textarea></div>
+          </div>
+          <!-- Sinhala Inputs -->
+          <div class="p-4 rounded-lg border border-gray-600">
+            <h4 class="font-bold text-lg mb-2 text-gray-300">Sinhala (SI)</h4>
+            <div><label class="font-semibold">Question (SI):</label><textarea id="modalQuestion_si" class="custom-input" rows="2"></textarea></div>
+            <div class="mt-2"><label class="font-semibold">Options (SI, comma-separated):</label><input id="modalOptions_si" type="text" class="custom-input"/></div>
+            <div class="mt-2"><label class="font-semibold">Correct Answer (SI):</label><input id="modalAnswer_si" type="text" class="custom-input"/></div>
+            <div class="mt-2"><label class="font-semibold">Explanation (SI):</label><textarea id="modalExplanation_si" class="custom-input" rows="2"></textarea></div>
+            <div class="mt-2"><label class="font-semibold">Hint (SI, optional):</label><textarea id="modalHint_si" class="custom-input" rows="1"></textarea></div>
+          </div>
+        </div>
+        <!-- Right Column: Preview and Settings -->
+        <div class="space-y-4">
+          <div class="bg-black/30 p-4 rounded-lg card">
+            <h4 class="font-bold text-lg mb-2 text-[var(--secondary-accent)]">Live Preview (EN)</h4>
+            <!-- IMPROVEMENT: Text now breaks correctly to prevent overflow -->
+            <div id="previewQuestion" class="font-bold text-xl min-h-[3rem] break-words"></div>
+            <div id="previewOptions" class="space-y-2 my-2"></div>
+            <div class="break-words"><strong class="text-green-400">Answer:</strong> <span id="previewAnswer"></span></div>
+            <div class="mt-2 pt-2 border-t border-gray-600 break-words"><strong class="text-gray-400">Explanation:</strong> <span id="previewExplanation"></span></div>
+          </div>
+          <div class="bg-black/30 p-4 rounded-lg card">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><label for="modalDifficulty" class="font-semibold">Difficulty:</label><select id="modalDifficulty" class="custom-select bg-black/30 text-white"><option value="easy" class="text-black">Easy</option><option value="medium" class="text-black">Medium</option><option value="hard" class="text-black">Hard</option></select></div>
+              <div><label for="modalCategory" class="font-semibold">Category:</label><input id="modalCategory" type="text" class="custom-input" placeholder="e.g., Calculus"/></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 pt-4">
+        <button onclick="closeModal('questionModal')" class="px-5 py-2 bg-gray-500 rounded-md hover:bg-gray-600 font-semibold card">Cancel</button>
+        <button onclick="saveQuestion()" class="px-5 py-2 text-white rounded-md hover:opacity-90 font-semibold card" style="background: var(--btn-gradient);">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="auth-screen" class="flex items-center justify-center min-h-screen p-4">
+    <div class="glassmorphism-glow p-8 rounded-xl w-full max-w-md text-center card">
+      <h2 class="text-3xl font-bold mb-6 text-[var(--primary-accent)]"><i class="fas fa-lock"></i> Admin Login</h2>
+      <form id="auth-form" class="space-y-4" onsubmit="event.preventDefault(); authenticate();">
+        <input type="password" id="passwordInput" class="custom-input w-full text-center text-lg" placeholder="Enter admin password">
+        <button type="submit" class="w-full px-6 py-3 font-bold text-white rounded-lg card" style="background: var(--btn-gradient);">Login</button>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    // --- STATE & CONFIG ---
+    let questions = [], users = {}, editingIndex = null, logoDataUrl = null, bgImageDataUrl = null, soundDataUrls = {};
+    let difficultyChart, categoryChart;
+    const ADMIN_PASSWORD = "admin";
+    const defaultSettings = { title: 'Combined Maths Challenge', logoUrl: null, timePerQ: 30, prizeTiers: { tier1: { name: 'Math God', time: 10, hard: 1 }, tier2: { name: 'Math Expert', time: 20 }, tier3: { name: 'Math Champion' } }, background: { type: 'gradient', imageUrl: null, blur: 0 }, theme: 'theme-cyberpunk', font: 'Inter', animation: 'anim-fade', sounds: {} };
+    const defaultQuestions = [{ id: 0, question: {en: 'Welcome!', si: 'සාදරයෙන් පිළිගනිමු!'}, options: {en: ['OK'], si: ['හරි']}, answer: {en: 'OK', si: 'හරි'}, explanation: {en: 'Add questions via the admin panel.', si: 'පරිපාලක පැනලය හරහා ප්‍රශ්න එකතු කරන්න.'}, difficulty: 'easy', isActive: true, category: 'General', hint: {en: '', si: ''} }];
+
+    // --- INITIALIZATION & AUTH ---
+    function authenticate() {
+      if (document.getElementById("passwordInput").value === ADMIN_PASSWORD) {
+        document.getElementById("auth-screen").style.display = 'none';
+        document.getElementById("main-content").classList.remove("hidden");
+        loadAllData();
+        setupEventListeners();
+      } else { alert("Incorrect password."); }
+    }
+
+    function loadAllData() {
+        const settings = JSON.parse(localStorage.getItem("quizApp_settings")) || JSON.parse(JSON.stringify(defaultSettings));
+        questions = (JSON.parse(localStorage.getItem("quizApp_questions")) || defaultQuestions).map(q => ({...q, isActive: q.isActive !== false, difficulty: q.difficulty || 'easy', category: q.category || 'General' }));
+        users = JSON.parse(localStorage.getItem("quizApp_users")) || {};
+        
+        document.getElementById("timeInput").value = localStorage.getItem("quizApp_timePerQ") || settings.timePerQ;
+        document.getElementById('titleInput').value = settings.title;
+        logoDataUrl = settings.logoUrl; if(logoDataUrl) document.getElementById('logoPreview').src = logoDataUrl;
+        document.getElementById('themeInput').value = settings.theme; document.getElementById('fontInput').value = settings.font; document.getElementById('animationInput').value = settings.animation;
+        document.getElementById('bgChoice').value = settings.background.type; bgImageDataUrl = settings.background.imageUrl; document.getElementById('bgBlurInput').value = settings.background.blur; document.getElementById('bgBlurValue').textContent = settings.background.blur;
+        if(settings.sounds) soundDataUrls = { ...settings.sounds };
+        
+        renderSoundInputs(); renderPrizeTiers(settings.prizeTiers); renderQuestions(); renderUserData(); updateDashboardStats(); renderDashboardCharts(); toggleBgImageSettings();
+    }
+
+    function setupEventListeners() {
+      document.getElementById('logoInput').addEventListener('change', (e) => handleFileChange(e, 'logo'), { passive: true });
+      document.getElementById('bgImageInput').addEventListener('change', (e) => handleFileChange(e, 'bgImage'), { passive: true });
+      document.getElementById('bgChoice').addEventListener('change', toggleBgImageSettings, { passive: true });
+      document.getElementById('bgBlurInput').addEventListener('input', (e) => { document.getElementById('bgBlurValue').textContent = e.target.value; }, { passive: true });
+      document.getElementById("question-search-input").addEventListener('input', filterQuestions, { passive: true });
+      document.getElementById("user-search-input").addEventListener('input', filterUsers, { passive: true });
+      document.getElementById("import-data-input").addEventListener('change', importAllData, { passive: true });
+      document.getElementById("import-questions-csv").addEventListener('change', importQuestionsFromCSV, { passive: true });
+      setInterval(updateLiveUserCount, 5000);
+    }
+
+    // --- DASHBOARD & STATS ---
+    function updateDashboardStats() {
+        document.getElementById('stats-total-questions').textContent = `${questions.filter(q => q.isActive).length} / ${questions.length}`;
+        document.getElementById('stats-total-users').textContent = Object.keys(users).length;
+        updateLiveUserCount();
+    }
+    function updateLiveUserCount() {
+        const liveUsers = JSON.parse(localStorage.getItem('quizApp_liveUsers')) || {};
+        document.getElementById('stats-live-users').textContent = Object.values(liveUsers).filter(ts => ts > (Date.now() - 30000)).length;
+    }
+    function renderDashboardCharts() {
+        // IMPROVEMENT: Added maintainAspectRatio: false to make charts fill their container
+        const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: 'white' } }, title: { display: true, color: 'white' } } };
+        const difficultyCtx = document.getElementById('difficulty-chart').getContext('2d');
+        const difficultyCounts = questions.reduce((acc, q) => { acc[q.difficulty] = (acc[q.difficulty] || 0) + 1; return acc; }, {});
+        if(difficultyChart) difficultyChart.destroy();
+        difficultyChart = new Chart(difficultyCtx, { type: 'doughnut', data: { labels: Object.keys(difficultyCounts), datasets: [{ data: Object.values(difficultyCounts), backgroundColor: ['#34d399', '#facc15', '#ef4444'], borderColor: '#1a1a2e', borderWidth: 2 }] }, options: {...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Questions by Difficulty'}}} });
+
+        const categoryCtx = document.getElementById('category-chart').getContext('2d');
+        const categoryCounts = questions.reduce((acc, q) => { acc[q.category] = (acc[q.category] || 0) + 1; return acc; }, {});
+        if(categoryChart) categoryChart.destroy();
+        categoryChart = new Chart(categoryCtx, { type: 'bar', data: { labels: Object.keys(categoryCounts), datasets: [{ label: '# of Questions', data: Object.values(categoryCounts), backgroundColor: '#8b5cf6' }] }, options: { ...chartOptions, indexAxis: 'y', scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } }, plugins: {...chartOptions.plugins, legend: {display: false}, title: {...chartOptions.plugins.title, text: 'Questions by Category'}}} });
+    }
+
+    // --- UI & MODALS ---
+    function openTab(event, tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.className = btn.className.replace('border-[var(--primary-accent)] text-[var(--primary-accent)]', 'border-transparent text-[var(--text-secondary)]'));
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.className = event.currentTarget.className.replace('border-transparent text-[var(--text-secondary)]', 'border-[var(--primary-accent)] text-[var(--primary-accent)]');
+    }
+    function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); document.getElementById(modalId).classList.add('flex'); }
+    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); document.getElementById(modalId).classList.remove('flex'); }
+    function toggleBgImageSettings() { document.getElementById('bgImageSettings').classList.toggle('hidden', document.getElementById('bgChoice').value !== 'image'); }
+
+    // --- DYNAMIC RENDERING ---
+    function renderQuestions(filtered = questions) {
+      const list = document.getElementById("questionsList"); list.innerHTML = "";
+      const getEnText = (field) => (typeof field === 'object' && field !== null) ? field.en || '' : field || '';
+      if (filtered.length === 0) {
+        list.innerHTML = `<p class="text-center text-gray-400">No questions found.</p>`;
+        return;
+      }
+      filtered.forEach((q) => {
+        const index = questions.findIndex(origQ => origQ.id === q.id);
+        const div = document.createElement('div');
+        div.className = "bg-black/20 p-4 rounded-lg border-l-4 flex flex-col sm:flex-row justify-between items-start gap-4 card";
+        div.style.borderColor = q.isActive ? 'var(--secondary-accent)' : 'var(--inactive-color)';
+        // IMPROVEMENT: Question text now wraps properly and layout is more robust on mobile
+        div.innerHTML = `<div class="flex-grow w-full"><p class="font-bold text-lg break-words">${getEnText(q.question)}</p><p class="text-sm break-words"><strong class="text-[var(--correct-color)]">A:</strong> ${getEnText(q.answer)}</p><p class="text-sm capitalize mt-2"><strong class="text-yellow-400">Diff:</strong> ${q.difficulty} | <strong class="text-cyan-400">Cat:</strong> ${q.category}</p></div><div class="flex items-center space-x-4 self-end sm:self-center"><div class="flex space-x-2"><button onclick="showQuestionModal(${index})" class="px-3 py-1 bg-yellow-500 text-black rounded text-sm font-semibold">Edit</button><button onclick="deleteQuestion(${index})" class="px-3 py-1 bg-red-600 rounded text-sm font-semibold">Delete</button></div><label class="toggle-switch flex-shrink-0"><input type="checkbox" ${q.isActive ? 'checked' : ''} onchange="toggleQuestionActive(${index})"><span class="slider"></span></label></div>`;
+        list.appendChild(div);
+      });
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+    function renderUserData(filtered = users) {
+      const tbody = document.getElementById("userDataBody"); tbody.innerHTML = "";
+      if (Object.keys(filtered).length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-400">No user data found.</td></tr>`;
+        return;
+      }
+      Object.entries(filtered).forEach(([key, user]) => {
+        const row = document.createElement("tr");
+        row.className = 'border-b border-gray-700 hover:bg-black/20';
+        row.innerHTML = `<td class="p-3 break-words">${user.name}</td><td class="p-3 break-words">${user.school}</td><td class="p-3 text-center">${user.stats?.roundsWon||0}</td><td class="p-3 text-center">${user.stats?.survivalHighScore||0}</td><td class="p-3 text-center"><button onclick="deleteUser('${key}')" class="px-3 py-1 bg-red-600 rounded text-sm font-semibold">Delete</button></td>`;
+        tbody.appendChild(row);
+      });
+    }
+    function renderPreview() {
+        document.getElementById('previewQuestion').innerHTML = document.getElementById('modalQuestion_en').value;
+        document.getElementById('previewAnswer').innerHTML = document.getElementById('modalAnswer_en').value;
+        document.getElementById('previewExplanation').innerHTML = document.getElementById('modalExplanation_en').value;
+        const options = document.getElementById('modalOptions_en').value.split(',').map(o => o.trim()).filter(Boolean);
+        document.getElementById('previewOptions').innerHTML = options.map(opt => `<p class="p-2 bg-black/20 rounded break-words">${opt}</p>`).join('');
+        if(window.MathJax) MathJax.typesetPromise();
+    }
+    function renderSoundInputs() {
+        const container = document.getElementById('audio-settings-grid'); container.innerHTML = "";
+        const soundConf = { bgMusic: 'BG Music', clickSound: 'Click', correctSound: 'Correct', wrongSound: 'Incorrect', timeoutSound: 'Timeout', winSound: 'Win' };
+        Object.entries(soundConf).forEach(([id, label]) => {
+            const div = document.createElement('div'); div.className = 'bg-black/20 p-3 rounded-lg';
+            div.innerHTML = `<label class="block mb-2 font-semibold text-sm">${label}:</label><input type="file" id="${id}-input" class="w-full text-xs file:py-1 file:px-2 file:rounded-full file:border-0 file:font-semibold file:bg-[var(--primary-accent)] file:text-white" accept="audio/*">`;
+            container.appendChild(div);
+            document.getElementById(`${id}-input`).addEventListener('change', (e) => handleSoundFileChange(e, id), { passive: true });
+        });
+    }
+    function renderPrizeTiers(prizes) {
+        const container = document.getElementById('prize-tiers-container'); container.innerHTML = "";
+        const tiers = { tier1: '🥇 Top Tier', tier2: '🥈 Mid Tier', tier3: '🥉 Standard' };
+        Object.entries(tiers).forEach(([id, label]) => {
+            const prize = prizes[id] || {};
+            const div = document.createElement('div'); div.className = 'p-4 bg-black/20 rounded-lg';
+            div.innerHTML = `<h3 class="text-xl font-bold mb-3">${label}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="block text-sm">Name</label><input type="text" id="prize${id}Name" value="${prize.name || ''}" class="custom-input"></div>
+                ${id !== 'tier3' ? `<div><label class="block text-sm">Max Avg. Time (s)</label><input type="number" id="prize${id}Time" value="${prize.time || ''}" class="custom-input"></div>` : '<div class="hidden"></div>'}
+                ${id === 'tier1' ? `<div><label class="block text-sm">Min 'Hard' Qs</label><input type="number" id="prize${id}Hard" value="${prize.hard || ''}" class="custom-input"></div>` : ''}
+            </div>`;
+            container.appendChild(div);
+        });
+    }
+
+    // --- CRUD & DATA HANDLING ---
+    function saveAll(){
+      const settings = {
+          title: document.getElementById('titleInput').value || defaultSettings.title, logoUrl: logoDataUrl,
+          theme: document.getElementById('themeInput').value, font: document.getElementById('fontInput').value, animation: document.getElementById('animationInput').value,
+          background: { type: document.getElementById('bgChoice').value, imageUrl: bgImageDataUrl, blur: parseInt(document.getElementById('bgBlurInput').value) }, sounds: soundDataUrls,
+          prizeTiers: {
+              tier1: { name: document.getElementById('prizetier1Name').value, time: parseFloat(document.getElementById('prizetier1Time').value), hard: parseInt(document.getElementById('prizetier1Hard').value) },
+              tier2: { name: document.getElementById('prizetier2Name').value, time: parseFloat(document.getElementById('prizetier2Time').value) },
+              tier3: { name: document.getElementById('prizetier3Name').value }
+          }
+      };
+      localStorage.setItem("quizApp_settings", JSON.stringify(settings));
+      localStorage.setItem("quizApp_timePerQ", document.getElementById("timeInput").value);
+      localStorage.setItem("quizApp_questions", JSON.stringify(questions));
+      localStorage.setItem("quizApp_users", JSON.stringify(users));
+      
+      const indicator = document.getElementById('save-indicator'); indicator.querySelector('span').textContent = "All changes saved!";
+      indicator.classList.remove('opacity-0'); setTimeout(() => indicator.classList.add('opacity-0'), 2500);
+    }
+    function saveQuestion() {
+        const qData = {
+            question:     { en: document.getElementById('modalQuestion_en').value.trim(), si: document.getElementById('modalQuestion_si').value.trim() },
+            options:      { en: document.getElementById('modalOptions_en').value.split(',').map(s=>s.trim()).filter(Boolean), si: document.getElementById('modalOptions_si').value.split(',').map(s=>s.trim()).filter(Boolean) },
+            answer:       { en: document.getElementById('modalAnswer_en').value.trim(),   si: document.getElementById('modalAnswer_si').value.trim() },
+            explanation:  { en: document.getElementById('modalExplanation_en').value.trim(), si: document.getElementById('modalExplanation_si').value.trim() },
+            hint:         { en: document.getElementById('modalHint_en').value.trim(),       si: document.getElementById('modalHint_si').value.trim() },
+            difficulty: document.getElementById('modalDifficulty').value,
+            category: document.getElementById('modalCategory').value.trim() || 'General',
+            isActive: true
+        };
+        if (!qData.question.en || qData.options.en.length < 2 || !qData.answer.en) { alert("Please fill the English Question, Options (at least 2), and Answer."); return; }
+        if (!qData.options.en.includes(qData.answer.en)) { alert("The English correct answer must be one of the provided English options."); return; }
+        
+        if (editingIndex === null) { qData.id = questions.length > 0 ? Math.max(...questions.map(q => q.id || 0)) + 1 : 0; questions.push(qData); }
+        else { qData.id = questions[editingIndex].id; qData.isActive = questions[editingIndex].isActive; questions[editingIndex] = qData; }
+        closeModal('questionModal'); renderQuestions(); updateDashboardStats(); renderDashboardCharts();
+    }
+    function showQuestionModal(index) {
+        editingIndex = index;
+        const getField = (q, fieldName, lang) => (typeof q[fieldName] === 'object' && q[fieldName] !== null) ? q[fieldName][lang] || '' : (lang === 'en' ? q[fieldName] : '');
+        const getOptions = (q, lang) => (Array.isArray(getField(q, 'options', lang))) ? getField(q, 'options', lang).join(', ') : '';
+
+        if (index === null) {
+            document.getElementById("modalTitle").textContent = 'Add New Question';
+            ['modalQuestion_en', 'modalOptions_en', 'modalAnswer_en', 'modalExplanation_en', 'modalHint_en',
+             'modalQuestion_si', 'modalOptions_si', 'modalAnswer_si', 'modalExplanation_si', 'modalHint_si', 'modalCategory'].forEach(id => document.getElementById(id).value = "");
+            document.getElementById("modalDifficulty").value = 'easy';
+        } else {
+            const q = questions[index];
+            document.getElementById("modalTitle").textContent = 'Edit Question';
+            document.getElementById("modalQuestion_en").value = getField(q, 'question', 'en');
+            document.getElementById("modalOptions_en").value = getOptions(q, 'en');
+            document.getElementById("modalAnswer_en").value = getField(q, 'answer', 'en');
+            document.getElementById("modalExplanation_en").value = getField(q, 'explanation', 'en');
+            document.getElementById("modalHint_en").value = getField(q, 'hint', 'en');
+            document.getElementById("modalQuestion_si").value = getField(q, 'question', 'si');
+            document.getElementById("modalOptions_si").value = getOptions(q, 'si');
+            document.getElementById("modalAnswer_si").value = getField(q, 'answer', 'si');
+            document.getElementById("modalExplanation_si").value = getField(q, 'explanation', 'si');
+            document.getElementById("modalHint_si").value = getField(q, 'hint', 'si');
+            document.getElementById("modalDifficulty").value = q.difficulty; 
+            document.getElementById("modalCategory").value = q.category;
+        }
+        renderPreview(); openModal('questionModal');
+    }
+    function deleteQuestion(index) { if (confirm("Delete this question?")) { questions.splice(index, 1); renderQuestions(); updateDashboardStats(); renderDashboardCharts(); } }
+    function deleteUser(key) { if(confirm(`Delete user: ${users[key].name}?`)) { delete users[key]; renderUserData(); updateDashboardStats(); } }
+    function clearAllUsers() { if(confirm("DANGER! Delete ALL user profiles?")) { users = {}; localStorage.removeItem("quizApp_users"); localStorage.removeItem("quizApp_liveUsers"); renderUserData(); updateDashboardStats(); } }
+    function toggleQuestionActive(index) { questions[index].isActive = !questions[index].isActive; renderQuestions(); updateDashboardStats(); }
+
+    // --- FILTERS ---
+    function filterQuestions() {
+        const term = document.getElementById('question-search-input').value.toLowerCase();
+        renderQuestions(questions.filter(q => {
+          const questionText = (typeof q.question === 'object' ? q.question.en : q.question) || '';
+          return questionText.toLowerCase().includes(term) || q.category.toLowerCase().includes(term) || q.difficulty.toLowerCase().includes(term)
+        }));
+    }
+    function filterUsers() {
+        const term = document.getElementById('user-search-input').value.toLowerCase();
+        const filtered = Object.fromEntries(Object.entries(users).filter(([k, u]) => u.name.toLowerCase().includes(term) || u.school.toLowerCase().includes(term)));
+        renderUserData(filtered);
+    }
+    
+    // --- IMPORT/EXPORT ---
+    function exportAllData() {
+        const data = { settings: JSON.parse(localStorage.getItem("quizApp_settings")), timePerQ: localStorage.getItem("quizApp_timePerQ"), questions: questions, users: users };
+        const a = document.createElement("a"); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2)); a.download = `quiz_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+    }
+    function importAllData(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (confirm("Overwrite all existing data with this file?")) {
+                    if(data.settings) localStorage.setItem("quizApp_settings", JSON.stringify(data.settings));
+                    if(data.timePerQ) localStorage.setItem("quizApp_timePerQ", data.timePerQ);
+                    if(data.questions) localStorage.setItem("quizApp_questions", JSON.stringify(data.questions));
+                    if(data.users) localStorage.setItem("quizApp_users", JSON.stringify(data.users));
+                    alert("Import successful! Page will reload."); location.reload();
+                }
+            } catch (err) { alert("Invalid backup file."); }
+        };
+        reader.readAsText(file);
+    }
+    function exportQuestionsToCSV() {
+        const headers = "question_en,question_si,options_en,options_si,answer_en,answer_si,explanation_en,explanation_si,difficulty,category,hint_en,hint_si,isActive";
+        const get = (field, lang) => {
+          if(typeof field === 'object' && field !== null) return Array.isArray(field[lang]) ? field[lang].join('|') : field[lang] || '';
+          return lang === 'en' ? (Array.isArray(field) ? field.join('|') : field) : '';
+        }
+        const rows = questions.map(q => [
+          get(q.question, 'en'), get(q.question, 'si'),
+          get(q.options, 'en'), get(q.options, 'si'),
+          get(q.answer, 'en'), get(q.answer, 'si'),
+          get(q.explanation, 'en'), get(q.explanation, 'si'),
+          q.difficulty, q.category,
+          get(q.hint, 'en'), get(q.hint, 'si'),
+          q.isActive
+        ].map(d=>`"${(d||'').toString().replace(/"/g,'""')}"`).join(','));
+        const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers, ...rows].join("\r\n")); a.download = "questions_export.csv"; a.click();
+    }
+    function importQuestionsFromCSV(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const lines = ev.target.result.split(/\r\n|\n/).slice(1);
+            const newQs = lines.filter(Boolean).map((line, i) => {
+                const data = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(d => d.replace(/^"|"$/g, '').replace(/""/g, '"'));
+                return {
+                    id: (questions.length ? Math.max(...questions.map(q=>q.id)) : 0) + i + 1,
+                    question: { en: data[0], si: data[1] },
+                    options: { en: data[2].split('|'), si: data[3].split('|') },
+                    answer: { en: data[4], si: data[5] },
+                    explanation: { en: data[6], si: data[7] },
+                    difficulty: data[8], category: data[9],
+                    hint: { en: data[10], si: data[11] },
+                    isActive: data[12] === 'true'
+                };
+            });
+            if(confirm(`Add ${newQs.length} new questions from CSV?`)) { questions.push(...newQs); renderQuestions(); updateDashboardStats(); renderDashboardCharts(); }
+        };
+        reader.readAsText(file);
+    }
+    function resetAllSettings(){ if(confirm("Reset all appearance and gameplay settings to default?")){ localStorage.removeItem("quizApp_settings"); localStorage.removeItem("quizApp_timePerQ"); location.reload(); } }
+    function handleFileChange(e, type) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            if(type === 'logo') { logoDataUrl = ev.target.result; document.getElementById('logoPreview').src = logoDataUrl; }
+            else if (type === 'bgImage') { bgImageDataUrl = ev.target.result; }
+        };
+        reader.readAsDataURL(file);
+    }
+    function handleSoundFileChange(e, id) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { soundDataUrls[id] = ev.target.result; };
+        reader.readAsDataURL(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { document.getElementById("passwordInput").addEventListener('keypress', (e) => { if (e.key === 'Enter') authenticate(); }); });
+  </script>
+  
+  <!-- IMPROVEMENT: Footer layout is now more responsive and centered. -->
+  <footer class="glassmorphism-glow mt-8 py-6 text-center text-gray-200">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="text-sm drop-shadow-md mb-2">
+        Developed by <span class="font-semibold text-white">Sadeepa Lakshan</span>
+      </p>
+      
+      <div class="flex justify-center space-x-6 mb-3">
+        <a href="https://github.com/sadeepas" target="_blank" class="hover:text-white transition-colors duration-300">
+          <i class="fab fa-github text-xl"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/sadeepa-lakshan/" target="_blank" class="hover:text-white transition-colors duration-300">
+          <i class="fab fa-linkedin text-xl"></i>
+        </a>
+        <a href="mailto:sadeepapemasiri2@gmai.com" class="hover:text-white transition-colors duration-300">
+          <i class="fas fa-envelope text-xl"></i>
+        </a>
+      </div>
+    
+      <p class="text-xs text-gray-300 drop-shadow-sm">
+        © <span id="year"></span> All Rights Reserved
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

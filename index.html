@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maths & Science Innovation Showcase</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================================== */
+        /* 1. THEME VARIABLES & CORE SETUP                            */
+        /* ========================================================== */
+        :root {
+            --color-primary: #FF4500; /* Red-Orange */
+            --color-secondary: #FF8C00; /* Dark Orange */
+            --color-dark-bg: #000000;
+            --color-card-bg: #0d0d0d;
+            --color-border: #202020;
+            --color-text-main: #f5f5f5;
+            --color-text-dim: #a0a0a0;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-dark-bg);
+            color: var(--color-text-main);
+            overflow-x: hidden;
+        }
+        
+        .text-flux-gradient {
+            background-image: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* ========================================================== */
+        /* 2. LOADING SCREEN                                          */
+        /* ========================================================== */
+        #loading-screen {
+            position: fixed; inset: 0; 
+            background: var(--color-dark-bg);
+            z-index: 9999; display: flex;
+            justify-content: center; align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dot {
+            height: 20px; width: 20px;
+            margin: 0 10px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            animation: wave 1.4s linear infinite;
+        }
+        .dot:nth-child(2) { animation-delay: -1.2s; }
+        .dot:nth-child(3) { animation-delay: -1.0s; }
+        @keyframes wave {
+            0%, 60%, 100% { transform: initial; }
+            30% { transform: translateY(-20px); }
+        }
+
+
+        /* ========================================================== */
+        /* 3. ANIMATIONS & INTERACTIVITY                              */
+        /* ========================================================== */
+        @keyframes pulseGlow {
+            0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.8; transform: translateX(-50%) scale(1.03); }
+            100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+        }
+        @keyframes shadowBreath {
+            0% { box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 140, 0, 0.6); }
+            100% { box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
+        }
+
+        .card-noise { position: relative; overflow: hidden; }
+        .card-noise::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 50%, transparent 50%);
+            background-size: 2px 2px; opacity: 0.2; z-index: 1;
+        }
+        
+        .hero-bg { position: relative; z-index: 1; }
+        .hero-bg::before {
+            content: ''; position: absolute; top: 0; left: 50%;
+            transform: translateX(-50%); width: 80vw; height: 100%;
+            background: radial-gradient(circle at center, rgba(255, 69, 0, 0.2) 0%, rgba(0, 0, 0, 1) 70%);
+            opacity: 0.7; z-index: -1;
+            animation: pulseGlow 5s infinite alternate ease-in-out;
+        }
+
+        .cta-pulse-shadow { animation: shadowBreath 3s infinite alternate; }
+        
+        .animate-on-scroll { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+        /* ========================================================== */
+        /* 4. UI COMPONENTS                                           */
+        /* ========================================================== */
+        .sticky-header.scrolled {
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+        }
+        
+        .project-card {
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        .project-card:hover {
+            transform: scale(1.03) translateY(-8px);
+            box-shadow: 0 15px 30px rgba(255, 69, 0, 0.3);
+        }
+        
+        .nav-link { 
+            position: relative; 
+            display: inline-block;
+            transition: transform 0.3s ease-out, color 0.3s ease-out;
+        }
+        .nav-link:hover {
+            transform: translateY(-2px);
+            color: var(--color-primary);
+        }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 100%; height: 2px;
+            background: var(--color-primary); transform: scaleX(0);
+            transform-origin: bottom right; transition: transform 0.3s ease-out;
+        }
+        .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        /* ========================================================== */
+        /* 5. PROJECT DETAIL MODAL                                    */
+        /* ========================================================== */
+        #project-modal {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        #project-modal.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background-color: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 1.5rem; /* rounded-3xl */
+            width: 90%; max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #project-modal.visible .modal-content { transform: scale(1); }
+
+        /* Improved Modal Buttons */
+        .modal-btn {
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             width: 100%;
+             text-align: center;
+             padding: 0.75rem 1.5rem;
+             border-radius: 9999px; /* rounded-full */
+             font-weight: 700; /* font-bold */
+             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+             transition: all 0.3s ease;
+             transform: scale(1);
+        }
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+            color: black;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+        }
+        .modal-btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(255, 140, 0, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .modal-btn-secondary {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-main);
+            border: 1px solid var(--color-border);
+            backdrop-filter: blur(5px);
+        }
+        .modal-btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--color-secondary);
+        }
+        
+        /* Dropdown Button Styles */
+        .dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+        .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .dropdown-toggle .chevron {
+            transition: transform 0.3s ease;
+        }
+        .dropdown-container.active .dropdown-toggle .chevron {
+            transform: rotate(180deg);
+        }
+        .dropdown-menu {
+            position: absolute;
+            bottom: 110%; /* Position above the button */
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            border: 1px solid var(--color-border);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 0.5rem;
+            z-index: 110;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: var(--color-text-main);
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background-color: var(--color-primary);
+            color: black;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-container">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="sticky top-0 z-50 transition-all duration-300 sticky-header border-b border-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="#home" class="flex items-center space-x-2 transition duration-300 transform hover:scale-105">
+                     <svg class="w-8 h-8 text-flux-gradient" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6.279 8.279L12 12m0 0l5.721 3.721M12 12L6.279 15.721M12 12V3.721m0 16.558V12m6.279-3.721L12 12m0 0l-5.721 3.721M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="text-2xl font-extrabold tracking-widest text-flux-gradient">Innovation Hub</span>
+                </a>
+                <nav class="hidden md:flex items-baseline space-x-10 text-sm font-bold uppercase">
+                    <a href="#home" class="nav-link text-white" data-section="home">Home</a>
+                    <a href="#about" class="nav-link text-white" data-section="about">About</a>
+                    <a href="#projects" class="nav-link text-white" data-section="projects">Projects</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero-bg relative min-h-screen flex items-center justify-center text-center overflow-hidden border-b border-[--color-border]">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-tight animate-on-scroll">
+                    <span class="block text-text-main">Math & Science</span>
+                    <span class="block text-flux-gradient mt-2">Innovation Showcase</span>
+                </h1>
+                <p class="mt-8 max-w-2xl mx-auto text-lg sm:text-xl text-text-dim animate-on-scroll" style="transition-delay: 200ms;">
+                    Presenting a collection of interactive web applications developed for the Science Day. Explore tools designed to make complex concepts in mathematics and physics intuitive and engaging.
+                </p>
+                <div class="mt-12 animate-on-scroll" style="transition-delay: 400ms;">
+                    <a href="#projects" class="inline-block bg-gradient-to-r from-[--color-primary] to-[--color-secondary] text-black py-4 px-10 rounded-full text-lg font-bold shadow-xl cta-pulse-shadow transition duration-300 transform hover:scale-105 hover:shadow-[--color-secondary]/70">
+                        Explore the Innovations
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 sm:py-32 border-b border-[--color-border]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
+                    <div class="animate-on-scroll">
+                        <h2 class="text-3xl font-extrabold tracking-tight text-text-main sm:text-4xl">
+                            <span class="block text-flux-gradient">Our Mission</span>
+                            <span class="block text-text-main mt-2">Bridging Theory and Interaction</span>
+                        </h2>
+                        <p class="mt-6 text-xl text-text-dim">
+                           Welcome to the digital exhibit for the Maths & Science Innovation Day. This collection of web applications was developed with a singular mission: to bridge the gap between theoretical knowledge and practical, hands-on understanding.
+                        </p>
+                        <p class="mt-4 text-xl text-text-dim">
+                           Each project is an experiment in interactive learning. By transforming abstract formulas and principles into visual, engaging tools, the goal is to foster curiosity and empower a deeper, more intuitive connection with the fascinating worlds of mathematics and physics.
+                        </p>
+                    </div>
+                     <div class="mt-12 lg:mt-0 animate-on-scroll" style="transition-delay: 200ms;">
+                        <div class="space-y-10">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-[--color-primary]/10 text-[--color-primary]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-lg leading-6 font-bold text-text-main">Interactive Visualization</h4>
+                                    <p class="mt-2 text-base text-text-dim">Complex formulas are transformed into dynamic graphs and simulations you can control, making abstract concepts tangible.</p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-[--color-primary]/10 text-[--color-primary]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-lg leading-6 font-bold text-text-main">Gamified Learning</h4>
+                                    <p class="mt-2 text-base text-text-dim">Engage with puzzles and challenges that turn learning into a game, encouraging experimentation and problem-solving.</p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-[--color-primary]/10 text-[--color-primary]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-lg leading-6 font-bold text-text-main">Real-Time Data</h4>
+                                    <p class="mt-2 text-base text-text-dim">Projects like the RC Telemetry app connect digital tools to the physical world, showing physics principles in action.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-24 sm:py-32 bg-secondary-dark">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center animate-on-scroll">
+                    <h2 class="text-base font-semibold tracking-wide uppercase text-flux-gradient">Showcase</h2>
+                    <p class="mt-2 text-4xl font-extrabold tracking-tight text-text-main sm:text-5xl">Featured Applications</p>
+                    <p class="mt-6 max-w-3xl text-xl text-text-dim mx-auto">
+                        Dive into a variety of tools, from advanced calculus visualizers to interactive probability simulators. Click any card to learn more.
+                    </p>
+                </div>
+
+                <div id="project-grid" class="mt-20 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Project cards will be injected here by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black py-16 border-t border-[--color-border]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-text-dim">
+             <div class="flex justify-center items-center space-x-6 mb-8">
+                <a href="https://github.com/sadeepas" target="_blank" rel="noopener noreferrer" class="hover:text-[--color-primary] transition-colors" aria-label="Github">
+                    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.489.5.092.682-.218.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.942.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" /></svg>
+                </a>
+                <a href="https://www.linkedin.com/in/sadeepa-lakshan/" target="_blank" rel="noopener noreferrer" class="hover:text-[--color-primary] transition-colors" aria-label="LinkedIn">
+                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+                 <a href="https://www.youtube.com/@slsadeepatec" target="_blank" rel="noopener noreferrer" class="hover:text-[--color-primary] transition-colors" aria-label="YouTube">
+                    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+            </div>
+            <p>&copy; 2025 Sadeepa Lakshan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Project Detail Modal -->
+    <div id="project-modal">
+        <div class="modal-content card-noise relative">
+            <button id="modal-close-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white z-20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="modal-body" class="p-6 md:p-8 z-10 relative">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- PROJECT DATA ---
+        const projects = [
+            {
+                title: "Calculus Odyssey",
+                short_description: "An all-in-one web app that makes calculus clear and interactive. Features a graphing lab, symbolic calculator, and practice problems.",
+                long_description: "Calculus Odyssey is a comprehensive educational tool designed to demystify the core concepts of calculus. It features a powerful graphing laboratory that allows users to plot multiple functions, find derivatives, and visualize integrals. The integrated symbolic calculator can solve complex equations step-by-step, providing valuable learning insights.",
+                image: "calculas.webp",
+                url: "calculas.html",
+                tags: ["Calculus", "Graphing", "Education"]
+            },
+            {
+                title: "Trigonometric PRO",
+                short_description: "Master trigonometry with an all-in-one suite. Solve equations, visualize triangles, plot functions, and simulate wave interference.",
+                long_description: "Trigonometric PRO is a complete suite for students and professionals. It goes beyond basic calculations, offering a triangle solver for any set of variables, an interactive unit circle, a versatile function plotter for sine, cosine, and tangent waves, and a unique wave interference simulator to visualize complex trigonometric interactions.",
+                image: "trigo.webp",
+                url: "trigo.html",
+                tags: ["Trigonometry", "Math", "Visualization"]
+            },
+            {
+                title: "Aura Graph Plotter",
+                short_description: "A multi-mode graphing tool for Cartesian, Polar, and Transformation plots. Find intersections and analyze functions with ease.",
+                long_description: "Aura Graph Plotter is an advanced visualization tool built for precision and flexibility. Users can seamlessly switch between Cartesian and Polar coordinate systems. A key feature is the transformation mode, which allows for intuitive manipulation of functions (translation, scaling, reflection) to understand their behavior. It also includes an accurate intersection finder for multiple plots.",
+                image: "plotter.webp",
+                url: "plotter.html",
+                tags: ["Graphing", "Analysis", "Tool"]
+            },
+            {
+                title: "Ultimate Dice Lab",
+                short_description: "A professional probability simulator with 3D dice, real-time distribution charts, Chi-Squared fairness tests, and a casino mode.",
+                long_description: "Ultimate Dice Lab provides a sandbox for exploring probability and statistics. It features realistic 3D dice simulations with customizable parameters. Data is visualized in real-time with dynamic distribution charts. For advanced analysis, it includes a Chi-Squared test to check for dice fairness against expected outcomes, and a 'Casino Mode' to simulate popular dice games.",
+                image: "dice.webp",
+                url: "dice.html",
+                tags: ["Probability", "Simulation", "Games"]
+            },
+            {
+                title: "MindMesh Puzzle Game",
+                short_description: "A unique physical-digital game. Spin a real-world wheel to get a number, which starts a timed, hands-on puzzle challenge.",
+                long_description: "MindMesh bridges the gap between physical and digital gameplay. The experience begins by spinning a custom-built wheel, which generates a number. This number is input into the web application, triggering a unique, timed puzzle challenge that requires logical thinking and quick reflexes to solve. It's an experiment in interactive, multi-modal entertainment.",
+                image: "puzzel_game.webp",
+                url: "puzzel.html",
+                tags: ["Game", "Puzzle", "Interactive"]
+            },
+            {
+                title: "Elite RC Telemetry",
+                short_description: "Visualize physics in action by drawing a real-time Velocity-Time graph from data captured by a custom-built RC car via Bluetooth.",
+                long_description: "This IoT project brings physics concepts to life. A custom-built RC car is equipped with sensors that measure its velocity. This data is transmitted in real-time via Bluetooth to a web application, which then plots a live Velocity-Time graph. It serves as a powerful demonstration of kinematics, allowing users to see the direct results of acceleration and deceleration.",
+                image: "vt_graph.webp",
+                url: "vt graph.html",
+                tags: ["Physics", "IoT", "Real-Time"]
+            },
+            {
+                title: "Math Quiz Application",
+                short_description: "Test your mathematical skills with this interactive quiz application. Covers various topics from algebra to geometry.",
+                long_description: "The Math Quiz Application is designed to challenge and improve your understanding across a spectrum of mathematical disciplines. With customizable difficulty levels and a wide range of questions, it offers an engaging way to practice and reinforce mathematical concepts. Instant feedback helps in learning and identifying areas for improvement.",
+                image: "math_quiz.webp",
+                url: {
+                    main: "quize.html", // URL for the main application
+                    admin: "admin.html" // URL for the admin panel
+                },
+                tags: ["Math", "Quiz", "Education", "Interactive"]
+            },
+            {
+                title: "Math Web",
+                short_description: "A comprehensive portal integrating various math tools: Ultimate Dice Lab, Aura Graph Plotter, Trigonometric PRO, and Calculus Odyssey.",
+                long_description: "Math Web is the ultimate destination for all your mathematical exploration needs. It serves as a central hub, seamlessly integrating four powerful applications: Ultimate Dice Lab for probability, Aura Graph Plotter for advanced graphing, Trigonometric PRO for trigonometry mastery, and Calculus Odyssey for in-depth calculus study. Experience a unified and intuitive platform for learning and applying mathematics.",
+                image: "math_web.webp",
+                url: "mathsweb.html",
+                tags: ["Math", "Portal", "Tools", "Comprehensive"]
+            }
+        ];
+        
+        // --- DYNAMIC PROJECT CARD INJECTION ---
+        const projectGrid = document.getElementById('project-grid');
+        projects.forEach((project, index) => {
+            const card = document.createElement('article');
+            card.className = 'group bg-[--color-card-bg] rounded-2xl overflow-hidden shadow-2xl project-card animate-on-scroll card-noise cursor-pointer';
+            card.style.transitionDelay = `${index * 100}ms`;
+            card.dataset.index = index;
+
+            card.innerHTML = `
+                <div class="overflow-hidden aspect-video">
+                    <img src="${project.image}" alt="${project.title}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700 grayscale group-hover:grayscale-0" loading="lazy">
+                </div>
+                <div class="p-6 relative z-10">
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        ${project.tags.map(tag => `<span class="text-xs font-bold text-[--color-primary] tracking-wider uppercase">${tag}</span>`).join('')}
+                    </div>
+                    <h3 class="text-xl font-bold mt-2 mb-2 hover:text-[--color-secondary] transition duration-300 line-clamp-2">
+                        ${project.title}
+                    </h3>
+                    <p class="text-[--color-text-dim] text-sm line-clamp-3">${project.short_description}</p>
+                </div>
+            `;
+            projectGrid.appendChild(card);
+        });
+
+        // --- UI & ANIMATION LOGIC ---
+        const header = document.getElementById('main-header');
+        const loadingScreen = document.getElementById('loading-screen');
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // Loading screen fade out
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.visibility = 'hidden';
+            }, 500);
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        }, { passive: true });
+
+        // Intersection Observer for scroll animations
+        const animationObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => animationObserver.observe(el));
+
+        // Intersection Observer for active nav link highlighting
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.dataset.section === id);
+                    });
+                }
+            });
+        }, { rootMargin: '-50% 0px -50% 0px' });
+        sections.forEach(section => navObserver.observe(section));
+        
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            const openDropdown = document.querySelector('.dropdown-container.active');
+            if (openDropdown && !openDropdown.contains(e.target)) {
+                openDropdown.classList.remove('active');
+                openDropdown.querySelector('.dropdown-menu').classList.remove('show');
+            }
+        });
+
+        // --- PROJECT MODAL LOGIC ---
+        const modal = document.getElementById('project-modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        projectGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.project-card');
+            if (card) {
+                const projectIndex = card.dataset.index;
+                const project = projects[projectIndex];
+                
+                let buttonHtml = '';
+                if (project.title === "Math Quiz Application" && typeof project.url === 'object') {
+                    // Specific button layout for Math Quiz App with dropdown
+                    buttonHtml = `
+                        <div class="dropdown-container">
+                            <button type="button" class="modal-btn modal-btn-primary dropdown-toggle">
+                                <span>Launch App</span>
+                                <svg class="w-5 h-5 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="dropdown-menu card-noise">
+                                <a href="${project.url.main}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Go to Main App</a>
+                                <a href="${project.url.admin}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Admin Panel</a>
+                            </div>
+                        </div>
+                        <a href="${project.url.main}" download class="modal-btn modal-btn-secondary">
+                            Download
+                        </a>
+                    `;
+                } else {
+                    // Standard button layout for other projects
+                    buttonHtml = `
+                        <a href="${project.url}" target="_blank" rel="noopener noreferrer" class="modal-btn modal-btn-primary">
+                            Go to Website
+                        </a>
+                        <a href="${project.url}" download class="modal-btn modal-btn-secondary">
+                            Download
+                        </a>
+                    `;
+                }
+
+                modalBody.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
+                        <div class="rounded-xl overflow-hidden aspect-video">
+                            <img src="${project.image}" alt="${project.title}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex flex-col h-full">
+                            <h2 class="text-3xl font-extrabold text-flux-gradient">${project.title}</h2>
+                            <div class="flex flex-wrap gap-2 my-4">
+                                ${project.tags.map(tag => `<span class="text-xs font-semibold bg-white/10 text-[--color-primary] px-2 py-1 rounded-full">${tag}</span>`).join('')}
+                            </div>
+                            <p class="text-text-dim flex-grow">${project.long_description}</p>
+                            <div class="mt-6 flex flex-col sm:flex-row gap-4">
+                                ${buttonHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener for the dropdown AFTER it's been added to the DOM
+                const dropdownContainer = modalBody.querySelector('.dropdown-container');
+                if (dropdownContainer) {
+                    const toggleButton = dropdownContainer.querySelector('.dropdown-toggle');
+                    const dropdownMenu = dropdownContainer.querySelector('.dropdown-menu');
+                    toggleButton.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent the window click listener from closing it immediately
+                        dropdownContainer.classList.toggle('active');
+                        dropdownMenu.classList.toggle('show');
+                    });
+                }
+                
+                modal.classList.add('visible');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            }
+        });
+
+        const closeModal = () => {
+            modal.classList.remove('visible');
+            document.body.style.overflow = '';
+        };
+
+        modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) { // Close if clicking on the backdrop
+                closeModal();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && modal.classList.contains('visible')) {
+                closeModal();
+            }
+        });
+    });
+    </script>
+
+</body>
+</html>
