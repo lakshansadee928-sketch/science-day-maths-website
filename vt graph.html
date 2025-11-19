@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Elite RC Telemetry 5.3 - Full Graph View</title>
+    <title>Elite RC Telemetry 5.3 - Optimized</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="icon" type="image/x-icon" href="vtgraphico.ico">
+    <link rel="icon" type="image/x-icon" href="vtgraphico.ico">
     <style>
         /* --- Core Styles & High-Contrast Graph Colors --- */
         :root {
@@ -45,12 +45,14 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
         }
         .panel-title {
-             @apply text-lg font-semibold text-slate-300 light:text-slate-700 pb-3 mb-4 border-b border-white/10 light:border-black/10;
+             @apply text-base font-semibold text-slate-300 light:text-slate-700 pb-3 mb-4 border-b border-white/10 light:border-black/10;
         }
-        .btn { transition: all 0.2s ease-in-out; }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
-        .btn:active:not(:disabled) { transform: translateY(0px); scale: 0.98; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn { 
+            @apply transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 light:focus:ring-offset-slate-100;
+        }
+        .btn:hover:not(:disabled) { @apply -translate-y-0.5 shadow-lg; }
+        .btn:active:not(:disabled) { @apply translate-y-0 scale-[0.98]; }
+        .btn:disabled { @apply opacity-50 cursor-not-allowed; }
         .gauge-indicator { transition: all 0.1s linear; }
 
         /* --- Animations --- */
@@ -64,156 +66,116 @@
         .blinking { animation: blink 0.8s infinite; background-color: rgba(255, 165, 0, 1) !important; filter: drop-shadow(0 0 10px #ffa500) !important; }
 
         /* --- Game Preview & Touch Controls --- */
-        #demo-game-container { position: relative; aspect-ratio: 16 / 9; background-color: #0b081d; border-radius: 0.75rem; overflow: hidden; transition: transform 0.1s ease-in-out; }
+        #demo-game-container { position: relative; aspect-ratio: 16 / 9; background-color: #0b081d; border-radius: 0.75rem; overflow: hidden; touch-action: none; }
         .light #demo-game-container { background-color: #e0e7ff; }
         #particleCanvas { position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
         #road-markings { position: absolute; top: 50%; left: 0; width: 100%; height: 4px; transform: translateY(-50%); background: repeating-linear-gradient(to right, #00b4d8, #00b4d8 20px, transparent 20px, transparent 80px); opacity: 0.2; }
-        #car { position: absolute; width: 80px; height: 160px; z-index: 10; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        #joystick-container { position: absolute; bottom: 20px; left: 20px; z-index: 20; }
-        #joystick-base { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
-        #joystick-stick { width: 60px; height: 60px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; }
-
+        #car { position: absolute; width: 50px; height: 100px; z-index: 10; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        #joystick-container { position: absolute; bottom: 1rem; left: 1rem; z-index: 20; }
+        #joystick-base { width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        #joystick-stick { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: transform 0.05s linear; }
         
         /* --- Custom Toggles --- */
         .graph-toggle input:checked ~ .dot { transform: translateX(100%); }
         .graph-toggle input:checked ~ .bg-slate-700 { background-color: var(--toggle-color, #38bdf8); }
         
-        /* --- IMPROVED Styles for Full-Screen Graph Mode --- */
+        /* --- Full-Screen Graph Mode --- */
         body.graph-fullscreen-active { overflow: hidden; }
-        
         body.graph-fullscreen-active > main > header,
         body.graph-fullscreen-active > main > footer,
-        body.graph-fullscreen-active .xl\:col-span-1, 
-        body.graph-fullscreen-active #demo-game-panel {
-            display: none;
-        }
-        
-        body.graph-fullscreen-active .xl\:col-span-4 {
-            width: 100%;
-            grid-column: span 5 / span 5;
-        }
-
+        body.graph-fullscreen-active #sidebar-column { display: none; }
+        body.graph-fullscreen-active #graph-column { width: 100%; grid-column: span 1 / span 1; }
         #graph-panel.is-fullscreen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 100; padding: 1rem; border-radius: 0; height: 100vh !important;
+            z-index: 100; padding: 0.5rem; border-radius: 0; height: 100vh !important;
+        }
+        #graph-panel.is-fullscreen #graph-title-bar {
+            position: absolute; top: 0.5rem; right: 0.5rem;
+            z-index: 10; margin-bottom: 0; justify-content: flex-end;
         }
         #graph-panel.is-fullscreen #graph-title,
         #graph-panel.is-fullscreen #export-buttons-container,
         #graph-panel.is-fullscreen #graph-toggles { display: none; }
-        #graph-panel.is-fullscreen #graph-header {
-            position: absolute; top: 0.5rem; right: 0.5rem;
-            z-index: 10; margin-bottom: 0; justify-content: flex-end;
+        
+
+        /* --- RESPONSIVE DESIGN (Mobile First) --- */
+        /* Base styles for mobile */
+        h1 { font-size: 1.5rem; }
+        #current-speed { font-size: 4rem; }
+        .glass-panel { padding: 1rem; }
+        #main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        #graph-column { min-height: 400px; }
+        #demo-game-panel { order: -2; } /* Demo on top */
+        #graph-column { order: -1; } /* Graph second */
+
+        /* Tablet Styles */
+        @media (min-width: 768px) {
+            h1 { font-size: 1.875rem; }
+            #current-speed { font-size: 5rem; }
+            .glass-panel { padding: 1.5rem; }
+             #car { width: 65px; height: 130px; }
         }
 
-        /* --- Responsive Design --- */
-        @media (max-width: 1279px) {
+        /* Desktop Styles */
+        @media (min-width: 1280px) {
             #main-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 3fr; /* 1/4 sidebar, 3/4 main content */
             }
-            .xl\:col-span-1, .xl\:col-span-4 {
-                grid-column: span 1 / span 1;
-            }
-            #demo-game-panel {
-                order: -1; /* Move demo panel to the top on smaller screens */
-            }
-        }
-
-        @media (max-width: 640px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-            #current-speed {
-                font-size: 4rem;
-            }
-            .panel-title {
-                font-size: 1rem;
-            }
-            .glass-panel {
-                padding: 1rem;
-            }
+            #sidebar-column { order: 1; }
+            #graph-column { order: 2; min-height: auto; }
+            #demo-game-panel { grid-column: span 1; } /* Take full width of its column */
+            #car { width: 80px; height: 160px; }
         }
     </style>
 </head>
 
 <body class="text-slate-200 light:text-slate-800 antialiased">
 
-    <!-- =================================================================== -->
-    <!-- OVERLAYS & MODALS                                                   -->
-    <!-- =================================================================== -->
+    <!-- OVERLAYS & MODALS -->
     <div id="loading-overlay" class="fixed inset-0 z-50 flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden"><div class="text-blue-400 mb-4"><svg width="80" height="80" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_V8m1{transform-origin:center;animation:spinner_zKoa 2s linear infinite}.spinner_V8m1 circle{stroke-linecap:round;animation:spinner_YpZS 1.5s ease-in-out infinite}@keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}</style><g class="spinner_V8m1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-width="3"></circle></g></svg></div><p id="loading-message" class="text-white text-lg font-medium tracking-wider">Connecting...</p></div>
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-3"></div>
-    <div id="help-modal" class="fixed inset-0 z-40 bg-black/60 items-center justify-center hidden p-4" onclick="document.getElementById('help-modal').classList.add('hidden')"><div class="glass-panel rounded-2xl w-full max-w-2xl p-6 relative animate-fade-in-up" onclick="event.stopPropagation()"><button id="close-modal-btn" aria-label="Close help modal" class="absolute top-4 right-4 text-slate-400 hover:text-white light:hover:text-black transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button><h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent light:from-blue-500 light:to-sky-500">Help & Troubleshooting</h2><div class="space-y-6 text-sm text-slate-300 light:text-slate-700 max-h-[70vh] overflow-y-auto pr-4"><div class="p-4 rounded-lg bg-slate-800/50 light:bg-slate-100"><h3 class="font-bold text-lg mb-2 text-white light:text-black">🚀 Pre-Flight Checklist</h3><ul class="list-disc list-inside space-y-1"><li>The RC car/device is powered on and running the correct firmware.</li><li>Your computer/phone has Bluetooth enabled.</li><li>You are using a compatible browser (e.g., Chrome, Edge).</li></ul></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">📈 Viewing Graphs</h3><p>The graph starts in a 15-second live scrolling mode. During a session, use the <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 0v9.5c0 .138.112.25.25.25h13.5a.25.25 0 00.25-.25v-9.5a.25.25 0 00-.25-.25H3.25a.25.25 0 00-.25.25z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M5 6a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2A.5.5 0 015 6zm2.5 0a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5zM10 6a.5.5 0 01.5.5v3a.5.5 0 01-1 0v-3a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0v-6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5z" clip-rule="evenodd" /></svg> button to switch to a full view of all data collected so far. The graph will automatically show the full view when a session ends or is loaded from storage.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">🎮 Demo Mode</h3><p>Click 'Demo Mode' to activate the car simulator. Use <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">WASD</kbd> or <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Arrow Keys</kbd> to drive on desktop. On touch devices, a virtual joystick will appear for steering and acceleration. Use <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Q</kbd> / <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">E</kbd> for turn signals.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">💾 Saving & Loading Data</h3><p>Once a session has started, click the 'Save' button to store your telemetry data. Use the 'Load' button to open a list of saved sessions. You can review the full graph and stats from a past run or delete old data.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">🤔 Common Issues & Solutions</h3><div class="space-y-3"><p><strong>Issue: The device doesn't appear in the Bluetooth connection list.</strong><br><span class="text-slate-400 light:text-slate-600">Solution: Ensure the RC device has power and is nearby. Try refreshing the page.</span></p><p><strong>Issue: The connection fails after multiple attempts.</strong><br><span class="text-slate-400 light:text-slate-600">Solution: Try power cycling the RC device, then refresh this page and try connecting again.</span></p></div></div></div></div></div>
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[101] flex flex-col gap-3"></div>
+    <div id="help-modal" class="fixed inset-0 z-40 bg-black/60 items-center justify-center hidden p-4" onclick="document.getElementById('help-modal').classList.add('hidden')"><div class="glass-panel rounded-2xl w-full max-w-2xl p-6 relative animate-fade-in-up" onclick="event.stopPropagation()"><button id="close-modal-btn" aria-label="Close help modal" class="absolute top-4 right-4 text-slate-400 hover:text-white light:hover:text-black transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button><h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent light:from-blue-500 light:to-sky-500">Help & Troubleshooting</h2><div class="space-y-6 text-sm text-slate-300 light:text-slate-700 max-h-[70vh] overflow-y-auto pr-4"><div class="p-4 rounded-lg bg-slate-800/50 light:bg-slate-100"><h3 class="font-bold text-lg mb-2 text-white light:text-black">🚀 Pre-Flight Checklist</h3><ul class="list-disc list-inside space-y-1"><li>The RC car/device is powered on and running the correct firmware.</li><li>Your computer/phone has Bluetooth enabled.</li><li>You are using a compatible browser (e.g., Chrome, Edge).</li></ul></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">📈 Viewing Graphs</h3><p>The graph starts in a 15-second live scrolling mode. During a session, use the <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block -mt-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 0v9.5c0 .138.112.25.25.25h13.5a.25.25 0 00.25-.25v-9.5a.25.25 0 00-.25-.25H3.25a.25.25 0 00-.25.25z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M5 6a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2A.5.5 0 015 6zm2.5 0a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5zM10 6a.5.5 0 01.5.5v3a.5.5 0 01-1 0v-3a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0v-6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5z" clip-rule="evenodd" /></svg> button to switch to a full view of all data collected so far. The graph will automatically show the full view when a session ends or is loaded from storage.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">🎮 Demo Mode</h3><p>Click 'Demo Mode' to activate the car simulator. On touch devices, a virtual joystick will appear for steering and acceleration. On desktop, use <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">WASD</kbd> or <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Arrow Keys</kbd> to drive. Use <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Q</kbd> / <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">E</kbd> for turn signals.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">💾 Saving & Loading Data</h3><p>Once a session has started, click the 'Save' button to store your telemetry data. Use the 'Load' button to open a list of saved sessions. You can review the full graph and stats from a past run or delete old data.</p></div><div><h3 class="font-bold text-lg mb-2 text-white light:text-black">🤔 Common Issues & Solutions</h3><div class="space-y-3"><p><strong>Issue: The device doesn't appear in the Bluetooth connection list.</strong><br><span class="text-slate-400 light:text-slate-600">Solution: Ensure the RC device has power and is nearby. Try refreshing the page.</span></p><p><strong>Issue: The connection fails after multiple attempts.</strong><br><span class="text-slate-400 light:text-slate-600">Solution: Try power cycling the RC device, then refresh this page and try connecting again.</span></p></div></div></div></div></div>
     <div id="session-modal" class="fixed inset-0 z-40 bg-black/60 items-center justify-center hidden p-4" onclick="document.getElementById('session-modal').classList.add('hidden'); document.getElementById('session-modal').classList.remove('flex');"><div class="glass-panel rounded-2xl w-full max-w-2xl p-6 relative animate-fade-in-up" onclick="event.stopPropagation()"><button id="close-session-modal-btn" aria-label="Close session modal" class="absolute top-4 right-4 text-slate-400 hover:text-white light:hover:text-black transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button><h2 id="session-modal-title" class="text-2xl font-bold mb-4 bg-gradient-to-r from-green-400 to-sky-400 bg-clip-text text-transparent">Saved Sessions</h2><div id="save-session-view" class="hidden space-y-4"><p class="text-slate-300 light:text-slate-700">Enter a name for the current session to save it for later review.</p><div><label for="session-name-input" class="block mb-2 text-sm font-medium text-slate-400">Session Name</label><input type="text" id="session-name-input" class="bg-slate-800/50 light:bg-slate-100 border border-slate-600 light:border-slate-300 text-white light:text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="e.g., Afternoon Test Run" required></div><button id="confirm-save-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg btn">💾 Confirm & Save</button></div><div id="load-session-view" class="hidden space-y-4"><p class="text-slate-300 light:text-slate-700">Select a previously saved session to load and review its data.</p><div id="saved-sessions-list" class="max-h-[50vh] overflow-y-auto space-y-2 pr-2"></div></div></div></div>
 
-    <!-- =================================================================== -->
-    <!-- MAIN CONTENT                                                        -->
-    <!-- =================================================================== -->
+    <!-- MAIN CONTENT -->
     <main class="max-w-8xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col min-h-screen">
         
         <header class="flex flex-wrap justify-between items-center gap-4 opacity-0 animate-fade-in-up pb-6 border-b border-slate-700/50 light:border-slate-300" style="animation-delay: 0ms;">
-            <div><h1 class="text-3xl font-bold text-white light:text-slate-900">Elite RC Telemetry 5.3</h1><p class="text-slate-400 light:text-slate-600">Advanced Performance Monitoring</p></div>
+            <div><h1 class="text-3xl font-bold text-white light:text-slate-900">Elite RC Telemetry</h1><p class="text-slate-400 light:text-slate-600 text-sm sm:text-base">Advanced Performance Monitoring</p></div>
             <div class="flex items-center gap-2">
                 <div class="relative"><select id="unit-selector" class="bg-white/5 light:bg-black/5 hover:bg-white/10 light:hover:bg-black/10 transition pl-3 pr-8 py-2 rounded-md appearance-none cursor-pointer"><option value="metric_ms">m/s</option><option value="metric_kmh">km/h</option><option value="imperial_mph">mph</option></select><svg class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg></div>
-                <button id="help-btn" title="Help" aria-label="Open help modal" class="p-2 rounded-full hover:bg-white/10 light:hover:bg-black/10 transition btn"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.105-.448 2.105-1.172 2.828a4.002 4.002 0 00-2.828 1.172A4.002 4.002 0 0112 21M12 18h.01" /></svg></button>
-                <button id="theme-toggle" title="Toggle Theme" aria-label="Toggle color theme" class="p-2 rounded-full hover:bg-white/10 light:hover:bg-black/10 transition btn"></button>
+                <button id="help-btn" title="Help" aria-label="Open help modal" class="p-3 rounded-full hover:bg-white/10 light:hover:bg-black/10 transition btn"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.105-.448 2.105-1.172 2.828a4.002 4.002 0 00-2.828 1.172A4.002 4.002 0 0112 21M12 18h.01" /></svg></button>
+                <button id="theme-toggle" title="Toggle Theme" aria-label="Toggle color theme" class="p-3 rounded-full hover:bg-white/10 light:hover:bg-black/10 transition btn"></button>
             </div>
         </header>
 
         <div id="unsupported-browser" class="hidden glass-panel rounded-xl p-4 text-center text-yellow-500 border border-yellow-500/50 mt-6"><p><strong>Warning:</strong> Your browser does not support Web Bluetooth. Please use a compatible browser like Chrome or Edge.</p></div>
 
-        <div id="main-grid" class="grid grid-cols-1 xl:grid-cols-5 gap-6 mt-6 flex-grow">
+        <div id="main-grid" class="mt-6 flex-grow">
             
-            <div class="xl:col-span-1 space-y-6 flex flex-col">
-                <div class="glass-panel p-6 rounded-2xl opacity-0 animate-fade-in-up" style="animation-delay: 100ms;">
-                    <h2 class="panel-title flex items-center justify-between"><span>Connection</span><span id="connection-status" class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-red-500/80 text-white"></span></h2>
-                    <div class="grid grid-cols-2 gap-3"><button id="connect-btn" class="col-span-2 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg btn">🔗 Connect</button><button id="demo-btn" class="col-span-2 bg-purple-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg btn">🎮 Demo Mode</button><button id="lap-btn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg btn" disabled>🏁 Mark Lap</button><button id="reset-btn" class="bg-slate-600 light:bg-slate-200 text-white light:text-slate-800 font-bold py-2 px-4 rounded-lg btn">🔄 Reset</button><button id="save-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg btn" disabled>💾 Save</button><button id="load-btn" class="bg-sky-600 text-white font-bold py-2 px-4 rounded-lg btn">📂 Load</button></div>
-                </div>
-
-                <div class="glass-panel p-6 rounded-2xl text-center opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
-                    <h2 class="panel-title mx-auto">Live Velocity</h2>
-                    <p id="current-speed" class="font-mono font-bold text-7xl" style="color: var(--color-velocity);">0.00</p>
-                    <p id="speed-unit" class="text-slate-400 light:text-slate-600">m/s</p>
-                </div>
-
-                <div id="gauges-container" class="hidden glass-panel p-6 rounded-2xl space-y-6 opacity-0 animate-fade-in-up" style="animation-delay: 300ms;">
-                    <div class="grid grid-cols-2 gap-4 items-center">
-                        <div class="flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">Throttle</h3><svg viewBox="0 0 40 120" class="h-32"><rect x="15" y="10" width="10" height="100" rx="5" class="fill-slate-700 light:fill-slate-200"/><rect id="brake-bar" x="15" y="60" width="10" height="0" rx="5" style="fill: var(--color-accel);" class="gauge-indicator"/><rect id="throttle-bar" x="15" y="60" width="10" height="0" rx="5" style="fill: var(--color-velocity);" class="gauge-indicator" transform="scale(1, -1) translate(0, -120)"/><line x1="5" x2="35" y1="60" y2="60" class="stroke-slate-500 light:stroke-slate-400" stroke-width="2"/><text id="throttle-text" x="20" y="118" text-anchor="middle" class="fill-current text-sm font-bold">N</text></svg></div>
-                        <div class="flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">G-Force</h3><div class="relative w-32 h-32"><svg viewBox="0 0 100 100" class="absolute inset-0"><circle cx="50" cy="50" r="15" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300" stroke-dasharray="2 2"></circle><circle cx="50" cy="50" r="30" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300"></circle><circle cx="50" cy="50" r="45" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300" stroke-dasharray="2 2"></circle><line x1="5" y1="50" x2="95" y2="50" stroke-width="0.5" class="stroke-slate-600 light:stroke-slate-400"></line><line x1="50" y1="5" x2="50" y2="95" stroke-width="0.5" class="stroke-slate-600 light:stroke-slate-400"></line><text x="50" y="18" text-anchor="middle" class="fill-current text-[8px]">1.0G</text><circle id="g-force-max-dot" cx="50" cy="50" r="4" class="fill-yellow-500/30 gauge-indicator"></circle><circle id="g-force-dot" cx="50" cy="50" r="5" style="fill: var(--color-gforce);" class="gauge-indicator"></circle><text id="g-force-text" x="50" y="95" text-anchor="middle" class="fill-current text-xs">0.00 G</text></svg></div></div>
-                    </div>
-                    <div class="pt-2 flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">Steering</h3><svg viewBox="0 0 120 30" class="w-48"><rect x="10" y="10" width="100" height="10" rx="5" class="fill-slate-700 light:fill-slate-200"/><rect id="steering-indicator" x="55" y="8" width="10" height="14" rx="3" style="fill: var(--color-displacement);" class="gauge-indicator"/><line x1="60" y1="5" x2="60" y2="25" stroke-width="2" class="stroke-slate-500 light:stroke-slate-400"/><text id="steering-text" x="60" y="28" text-anchor="middle" class="fill-current text-xs font-bold">0°</text></svg></div>
-                </div>
-                
-                <div class="glass-panel p-6 rounded-2xl space-y-4 opacity-0 animate-fade-in-up" style="animation-delay: 400ms;">
-                    <h2 class="panel-title">Session Stats</h2>
-                    <div id="max-velocity-box" class="flex justify-between items-center p-2 rounded-lg transition-colors duration-500"><span class="text-slate-400 light:text-slate-600">🚀 Max Vel</span><span id="max-velocity" class="font-bold text-xl" style="color: var(--color-gforce);">0.00</span></div>
-                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">📊 Avg Vel</span><span id="avg-velocity" class="font-bold text-xl" style="color: var(--color-distance);">0.00</span></div>
-                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">📏 Distance</span><span id="total-distance" class="font-bold text-xl" style="color: var(--color-displacement);">0.00</span></div>
-                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">⏱️ Duration</span><span id="duration" class="font-bold text-xl" style="color: var(--color-velocity);">0.00 s</span></div>
-                </div>
-                 <div id="lap-times-container" class="hidden glass-panel p-6 rounded-2xl space-y-2 opacity-0 animate-fade-in-up" style="animation-delay: 500ms;">
-                    <h2 class="panel-title">Lap Times</h2>
-                    <div class="max-h-32 overflow-y-auto pr-2 space-y-1" id="lap-times-list"></div>
-                </div>
-            </div>
-
-            <div class="xl:col-span-4 flex flex-col gap-6">
-                <div id="demo-game-panel" class="hidden glass-panel p-4 rounded-2xl opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
+            <!-- This column contains the graph and demo panel -->
+            <div id="graph-column" class="flex flex-col gap-6">
+                 <div id="demo-game-panel" class="hidden glass-panel p-2 sm:p-4 rounded-2xl opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
                     <div id="demo-game-container">
                         <canvas id="particleCanvas"></canvas>
                         <div id="road-markings"></div>
                         <div id="car">
                              <div class="relative w-full h-full">
                                 <div class="absolute inset-0 bg-gradient-to-b from-red-600 to-red-800 rounded-[25px] shadow-lg shadow-black/50"><div class="w-full h-full rounded-[25px] shadow-[inset_0px_0px_15px_rgba(0,0,0,0.5)]"></div></div>
-                                <div class="absolute top-[12px] left-1/2 -translate-x-1/2 w-[60px] h-[136px] bg-gray-800 rounded-[20px]"></div>
-                                <div class="absolute top-[15px] left-1/2 -translate-x-1/2 w-[54px] h-[50px] bg-gradient-to-b from-cyan-400 to-blue-600 rounded-t-[18px] rounded-b-lg"></div>
-                                <div class="absolute bottom-[15px] left-1/2 -translate-x-1/2 w-[54px] h-[40px] bg-gradient-to-b from-cyan-400 to-blue-600 rounded-b-[18px] rounded-t-lg"></div>
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[54px] h-[45px] bg-gradient-to-b from-red-500 to-red-700"><div class="absolute inset-[3px] bg-gray-800 rounded-md"></div></div>
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] h-[100px] bg-white/10 rounded-full blur-md"></div>
-                                <div id="headlights" class="absolute top-[4px] w-full flex justify-between px-3"><div class="w-6 h-5 bg-white/10 rounded-full blur-sm"></div><div class="w-6 h-5 bg-white/10 rounded-full blur-sm"></div></div>
-                                <div id="taillights" class="absolute bottom-[4px] w-full flex justify-between px-3"><div class="w-6 h-5 bg-red-500/20 rounded-full blur-sm"></div><div class="w-6 h-5 bg-red-500/20 rounded-full blur-sm"></div></div>
-                                <div id="high-mount-brake-light" class="absolute bottom-[58px] left-1/2 -translate-x-1/2 w-[30px] h-[4px] bg-red-500/20 rounded-sm transition-all duration-200"></div>
-                                <div class="absolute top-[10px] w-full flex justify-between px-2"><div id="signal-fl" class="w-3 h-3 rounded-full bg-amber-500/20"></div><div id="signal-fr" class="w-3 h-3 rounded-full bg-amber-500/20"></div></div>
-                                <div class="absolute bottom-[10px] w-full flex justify-between px-2"><div id="signal-rl" class="w-3 h-3 rounded-full bg-amber-500/20"></div><div id="signal-rr" class="w-3 h-3 rounded-full bg-amber-500/20"></div></div>
+                                <div class="absolute top-[12px] left-1/2 -translate-x-1/2 w-[60%] h-[85%] bg-gray-800 rounded-[20px]"></div>
+                                <div class="absolute top-[15px] left-1/2 -translate-x-1/2 w-[54%] h-[31%] bg-gradient-to-b from-cyan-400 to-blue-600 rounded-t-[18px] rounded-b-lg"></div>
+                                <div class="absolute bottom-[15px] left-1/2 -translate-x-1/2 w-[54%] h-[25%] bg-gradient-to-b from-cyan-400 to-blue-600 rounded-b-[18px] rounded-t-lg"></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[54%] h-[28%] bg-gradient-to-b from-red-500 to-red-700"><div class="absolute inset-[3px] bg-gray-800 rounded-md"></div></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[62%] bg-white/10 rounded-full blur-md"></div>
+                                <div id="headlights" class="absolute top-[4px] w-full flex justify-between px-[15%]"><div class="w-6 h-5 bg-white/10 rounded-full blur-sm"></div><div class="w-6 h-5 bg-white/10 rounded-full blur-sm"></div></div>
+                                <div id="taillights" class="absolute bottom-[4px] w-full flex justify-between px-[15%]"><div class="w-6 h-5 bg-red-500/20 rounded-full blur-sm"></div><div class="w-6 h-5 bg-red-500/20 rounded-full blur-sm"></div></div>
+                                <div id="high-mount-brake-light" class="absolute bottom-[36%] left-1/2 -translate-x-1/2 w-[30%] h-[4px] bg-red-500/20 rounded-sm transition-all duration-200"></div>
+                                <div class="absolute top-[10px] w-full flex justify-between px-[10%]"><div id="signal-fl" class="w-3 h-3 rounded-full bg-amber-500/20"></div><div id="signal-fr" class="w-3 h-3 rounded-full bg-amber-500/20"></div></div>
+                                <div class="absolute bottom-[10px] w-full flex justify-between px-[10%]"><div id="signal-rl" class="w-3 h-3 rounded-full bg-amber-500/20"></div><div id="signal-rr" class="w-3 h-3 rounded-full bg-amber-500/20"></div></div>
                             </div>
                         </div>
                         <div id="joystick-container" class="hidden">
@@ -223,41 +185,66 @@
                         </div>
                     </div>
                 </div>
-                
-                <div id="graph-panel" class="relative glass-panel p-4 sm:p-6 rounded-2xl flex flex-col flex-grow min-h-0 opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
-                    <div id="graph-header" class="flex flex-wrap gap-x-6 gap-y-3 justify-between items-center mb-4">
-                        <h2 id="graph-title" class="text-xl font-bold">Telemetry Graphs</h2>
+                <div id="graph-panel" class="relative glass-panel p-2 sm:p-4 rounded-2xl flex flex-col flex-grow min-h-0 opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
+                    <div id="graph-title-bar" class="flex flex-wrap gap-x-4 gap-y-3 justify-between items-center mb-4">
+                        <h2 id="graph-title" class="text-lg sm:text-xl font-bold">Telemetry Graphs</h2>
                         <div class="flex items-center gap-x-2 gap-y-2 text-sm">
                             <div id="export-buttons-container" class="flex items-center gap-x-2">
-                                <button id="export-csv-btn" class="text-sm bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg btn">📥 CSV</button>
-                                <button id="export-png-btn" class="text-sm bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-3 rounded-lg btn">🖼️ PNG</button>
+                                <button id="export-csv-btn" class="text-sm bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg btn">CSV</button>
+                                <button id="export-png-btn" class="text-sm bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-3 rounded-lg btn">PNG</button>
                             </div>
                             <button id="toggle-view-btn" class="text-sm bg-teal-600 hover:bg-teal-700 text-white font-bold p-2 rounded-lg btn" title="View Full Session" aria-label="Toggle graph view">
                                 <svg id="icon-full-view" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 0v9.5c0 .138.112.25.25.25h13.5a.25.25 0 00.25-.25v-9.5a.25.25 0 00-.25-.25H3.25a.25.25 0 00-.25.25z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M5 6a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2A.5.5 0 015 6zm2.5 0a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5zM10 6a.5.5 0 01.5.5v3a.5.5 0 01-1 0v-3a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0v-6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5z" clip-rule="evenodd" /></svg>
                                 <svg id="icon-live-view" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" /><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse" /></svg>
                             </button>
-                            <button id="fullscreen-btn" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded-lg btn" title="Toggle Fullscreen" aria-label="Toggle graph fullscreen">
-                                <svg id="fullscreen-icon-expand" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5v4m0 0h-4" />
-                                </svg>
-                                <svg id="fullscreen-icon-compress" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-4-4m0 0l-4 4m4-4V3m0 16v-4m-4-4H3m14 0h4M3 9h4m14 0h-4" />
-                                </svg>
+                             <button id="fullscreen-btn" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded-lg btn" title="Toggle Fullscreen" aria-label="Toggle graph fullscreen">
+                                <svg id="fullscreen-icon-expand" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5v4m0 0h-4" /></svg>
+                                <svg id="fullscreen-icon-compress" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-4-4m0 0l-4 4m4-4V3m0 16v-4m-4-4H3m14 0h4M3 9h4m14 0h-4" /></svg>
                             </button>
                         </div>
                     </div>
-
-                    <div class="relative flex-grow min-h-0">
-                        <canvas id="telemetryChart"></canvas>
-                    </div>
-                    
+                    <div class="relative flex-grow min-h-0"><canvas id="telemetryChart"></canvas></div>
                     <div id="graph-toggles" class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm pt-4">
-                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-velocity);"> <input type="checkbox" data-index="0" class="sr-only graph-checkbox" checked> <span class="w-9 h-5 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-3.5 h-3.5 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span> <span class="ml-2" style="color: var(--color-velocity);">Velocity</span></label>
-                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-accel);"> <input type="checkbox" data-index="1" class="sr-only graph-checkbox" checked> <span class="w-9 h-5 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-3.5 h-3.5 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span> <span class="ml-2" style="color: var(--color-accel);">Accel</span></label>
-                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-distance);"> <input type="checkbox" data-index="2" class="sr-only graph-checkbox"> <span class="w-9 h-5 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-3.5 h-3.5 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span> <span class="ml-2" style="color: var(--color-distance);">Distance</span></label>
-                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-displacement);"> <input type="checkbox" data-index="3" class="sr-only graph-checkbox"> <span class="w-9 h-5 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-3.5 h-3.5 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span> <span class="ml-2" style="color: var(--color-displacement);">Displacement</span></label>
-                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-jerk);"> <input type="checkbox" data-index="4" class="sr-only graph-checkbox"> <span class="w-9 h-5 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-3.5 h-3.5 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span> <span class="ml-2" style="color: var(--color-jerk);">Jerk</span></label>
+                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-velocity);"><input type="checkbox" data-index="0" class="sr-only graph-checkbox" checked><span class="w-10 h-6 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-4 h-4 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span><span class="ml-2" style="color: var(--color-velocity);">Velocity</span></label>
+                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-accel);"><input type="checkbox" data-index="1" class="sr-only graph-checkbox" checked><span class="w-10 h-6 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-4 h-4 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span><span class="ml-2" style="color: var(--color-accel);">Accel</span></label>
+                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-distance);"><input type="checkbox" data-index="2" class="sr-only graph-checkbox"><span class="w-10 h-6 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-4 h-4 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span><span class="ml-2" style="color: var(--color-distance);">Distance</span></label>
+                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-displacement);"><input type="checkbox" data-index="3" class="sr-only graph-checkbox"><span class="w-10 h-6 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-4 h-4 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span><span class="ml-2" style="color: var(--color-displacement);">Displacement</span></label>
+                        <label class="flex items-center cursor-pointer graph-toggle" style="--toggle-color: var(--color-jerk);"><input type="checkbox" data-index="4" class="sr-only graph-checkbox"><span class="w-10 h-6 flex items-center flex-shrink-0 p-1 rounded-full duration-300 ease-in-out bg-slate-700 light:bg-slate-300"><span class="w-4 h-4 rounded-full shadow-md duration-300 ease-in-out bg-white dot"></span></span><span class="ml-2" style="color: var(--color-jerk);">Jerk</span></label>
                     </div>
+                </div>
+            </div>
+
+            <!-- This column contains the controls and stats -->
+            <div id="sidebar-column" class="space-y-6 flex flex-col">
+                <div class="glass-panel p-4 sm:p-6 rounded-2xl opacity-0 animate-fade-in-up" style="animation-delay: 100ms;">
+                    <h2 class="panel-title flex items-center justify-between"><span>Connection</span><span id="connection-status" class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-red-500/80 text-white"></span></h2>
+                    <div class="grid grid-cols-2 gap-3"><button id="connect-btn" class="col-span-2 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg btn">🔗 Connect</button><button id="demo-btn" class="col-span-2 bg-purple-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg btn">🎮 Demo Mode</button><button id="lap-btn" class="bg-amber-600 text-white font-bold py-3 px-4 rounded-lg btn" disabled>🏁 Mark Lap</button><button id="reset-btn" class="bg-slate-600 light:bg-slate-200 text-white light:text-slate-800 font-bold py-3 px-4 rounded-lg btn">🔄 Reset</button><button id="save-btn" class="bg-green-600 text-white font-bold py-3 px-4 rounded-lg btn" disabled>💾 Save</button><button id="load-btn" class="bg-sky-600 text-white font-bold py-3 px-4 rounded-lg btn">📂 Load</button></div>
+                </div>
+
+                <div class="glass-panel p-4 sm:p-6 rounded-2xl text-center opacity-0 animate-fade-in-up" style="animation-delay: 200ms;">
+                    <h2 class="panel-title mx-auto">Live Velocity</h2>
+                    <p id="current-speed" class="font-mono font-bold" style="color: var(--color-velocity);">0.00</p>
+                    <p id="speed-unit" class="text-slate-400 light:text-slate-600">m/s</p>
+                </div>
+
+                <div id="gauges-container" class="hidden glass-panel p-4 sm:p-6 rounded-2xl space-y-6 opacity-0 animate-fade-in-up" style="animation-delay: 300ms;">
+                    <div class="grid grid-cols-2 gap-4 items-center">
+                        <div class="flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">Throttle</h3><svg viewBox="0 0 40 120" class="h-32"><rect x="15" y="10" width="10" height="100" rx="5" class="fill-slate-700 light:fill-slate-200"/><rect id="brake-bar" x="15" y="60" width="10" height="0" rx="5" style="fill: var(--color-accel);" class="gauge-indicator"/><rect id="throttle-bar" x="15" y="60" width="10" height="0" rx="5" style="fill: var(--color-velocity);" class="gauge-indicator" transform="scale(1, -1) translate(0, -120)"/><line x1="5" x2="35" y1="60" y2="60" class="stroke-slate-500 light:stroke-slate-400" stroke-width="2"/><text id="throttle-text" x="20" y="118" text-anchor="middle" class="fill-current text-sm font-bold">N</text></svg></div>
+                        <div class="flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">G-Force</h3><div class="relative w-32 h-32"><svg viewBox="0 0 100 100" class="absolute inset-0"><circle cx="50" cy="50" r="15" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300" stroke-dasharray="2 2"></circle><circle cx="50" cy="50" r="30" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300"></circle><circle cx="50" cy="50" r="45" fill="none" stroke-width="1" class="stroke-slate-700 light:stroke-slate-300" stroke-dasharray="2 2"></circle><line x1="5" y1="50" x2="95" y2="50" stroke-width="0.5" class="stroke-slate-600 light:stroke-slate-400"></line><line x1="50" y1="5" x2="50" y2="95" stroke-width="0.5" class="stroke-slate-600 light:stroke-slate-400"></line><text x="50" y="18" text-anchor="middle" class="fill-current text-[8px]">1.0G</text><circle id="g-force-max-dot" cx="50" cy="50" r="4" class="fill-yellow-500/30 gauge-indicator"></circle><circle id="g-force-dot" cx="50" cy="50" r="5" style="fill: var(--color-gforce);" class="gauge-indicator"></circle><text id="g-force-text" x="50" y="95" text-anchor="middle" class="fill-current text-xs">0.00 G</text></svg></div></div>
+                    </div>
+                    <div class="pt-2 flex flex-col items-center"><h3 class="font-semibold text-slate-300 light:text-slate-700 mb-2">Steering</h3><svg viewBox="0 0 120 30" class="w-48"><rect x="10" y="10" width="100" height="10" rx="5" class="fill-slate-700 light:fill-slate-200"/><rect id="steering-indicator" x="55" y="8" width="10" height="14" rx="3" style="fill: var(--color-displacement);" class="gauge-indicator"/><line x1="60" y1="5" x2="60" y2="25" stroke-width="2" class="stroke-slate-500 light:stroke-slate-400"/><text id="steering-text" x="60" y="28" text-anchor="middle" class="fill-current text-xs font-bold">0°</text></svg></div>
+                </div>
+                
+                <div class="glass-panel p-4 sm:p-6 rounded-2xl space-y-4 opacity-0 animate-fade-in-up" style="animation-delay: 400ms;">
+                    <h2 class="panel-title">Session Stats</h2>
+                    <div id="max-velocity-box" class="flex justify-between items-center p-2 rounded-lg transition-colors duration-500"><span class="text-slate-400 light:text-slate-600">🚀 Max Vel</span><span id="max-velocity" class="font-bold text-xl" style="color: var(--color-gforce);">0.00</span></div>
+                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">📊 Avg Vel</span><span id="avg-velocity" class="font-bold text-xl" style="color: var(--color-distance);">0.00</span></div>
+                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">📏 Distance</span><span id="total-distance" class="font-bold text-xl" style="color: var(--color-displacement);">0.00</span></div>
+                    <div class="flex justify-between items-center p-2"><span class="text-slate-400 light:text-slate-600">⏱️ Duration</span><span id="duration" class="font-bold text-xl" style="color: var(--color-velocity);">0.00 s</span></div>
+                </div>
+                 <div id="lap-times-container" class="hidden glass-panel p-4 sm:p-6 rounded-2xl space-y-2 opacity-0 animate-fade-in-up" style="animation-delay: 500ms;">
+                    <h2 class="panel-title">Lap Times</h2>
+                    <div class="max-h-32 overflow-y-auto pr-2 space-y-1" id="lap-times-list"></div>
                 </div>
             </div>
         </div>
@@ -788,10 +775,12 @@ class DemoMode {
         document.addEventListener('keyup', this.handleKeys.bind(this));
         
         if ('ontouchstart' in window) {
-            this.dom.joystickContainer.classList.remove('hidden');
-            this.dom.joystickContainer.addEventListener('touchstart', this.handleTouch.bind(this), { passive: false });
-            window.addEventListener('touchmove', this.handleTouch.bind(this), { passive: false });
-            window.addEventListener('touchend', this.handleTouch.bind(this), { passive: false });
+            const joystickEl = this.dom.joystickContainer;
+            joystickEl.classList.remove('hidden');
+            joystickEl.addEventListener('touchstart', this.handleTouch.bind(this), { passive: false });
+            joystickEl.addEventListener('touchmove', this.handleTouch.bind(this), { passive: false });
+            joystickEl.addEventListener('touchend', this.handleTouch.bind(this), { passive: false });
+            joystickEl.addEventListener('touchcancel', this.handleTouch.bind(this), { passive: false });
         }
         
         this.loopId = requestAnimationFrame(this.gameLoop.bind(this));
@@ -805,10 +794,12 @@ class DemoMode {
         document.removeEventListener('keyup', this.handleKeys.bind(this));
 
         if ('ontouchstart' in window) {
-            this.dom.joystickContainer.classList.add('hidden');
-            this.dom.joystickContainer.removeEventListener('touchstart', this.handleTouch.bind(this));
-            window.removeEventListener('touchmove', this.handleTouch.bind(this));
-            window.removeEventListener('touchend', this.handleTouch.bind(this));
+            const joystickEl = this.dom.joystickContainer;
+            joystickEl.classList.add('hidden');
+            joystickEl.removeEventListener('touchstart', this.handleTouch.bind(this));
+            joystickEl.removeEventListener('touchmove', this.handleTouch.bind(this));
+            joystickEl.removeEventListener('touchend', this.handleTouch.bind(this));
+            joystickEl.removeEventListener('touchcancel', this.handleTouch.bind(this));
         }
 
         this.dom.container.style.transform = '';
@@ -826,9 +817,9 @@ class DemoMode {
 
     handleTouch(e) {
         e.preventDefault();
-        const joystickRect = this.dom.joystickContainer.getBoundingClientRect();
-        const centerX = joystickRect.left + joystickRect.width / 2;
-        const centerY = joystickRect.top + joystickRect.height / 2;
+        const baseRect = this.dom.joystickContainer.getBoundingClientRect();
+        const centerX = baseRect.left + baseRect.width / 2;
+        const centerY = baseRect.top + baseRect.height / 2;
 
         if (e.type === 'touchstart') {
             this.touch.active = true;
@@ -837,24 +828,26 @@ class DemoMode {
             this.touch.x = 0;
             this.touch.y = 0;
             this.dom.joystickStick.style.transform = `translate(0px, 0px)`;
+            return;
         }
 
-        if (this.touch.active) {
+        if (this.touch.active && e.touches.length > 0) {
             const touch = e.touches[0];
             let dx = touch.clientX - centerX;
             let dy = touch.clientY - centerY;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxDistance = joystickRect.width / 2;
+            const maxDistance = baseRect.width / 2;
 
             if (distance > maxDistance) {
                 dx = (dx / distance) * maxDistance;
                 dy = (dy / distance) * maxDistance;
             }
-
+            
             this.touch.x = dx / maxDistance;
             this.touch.y = -dy / maxDistance; // Invert Y for forward/backward
 
-            this.dom.joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            const stickMaxTranslate = (baseRect.width - this.dom.joystickStick.clientWidth) / 2;
+            this.dom.joystickStick.style.transform = `translate(${this.touch.x * stickMaxTranslate}px, ${-this.touch.y * stickMaxTranslate}px)`;
         }
     }
 
@@ -871,7 +864,6 @@ class DemoMode {
     updatePhysics() {
         const dt = 1 / 60;
         
-        // Handle touch controls
         let targetThrottle = 0;
         if (this.touch.active) {
             targetThrottle = this.touch.y;
@@ -1200,7 +1192,7 @@ class TelemetryDashboard {
             this.demo.start();
             this.state.connection = 'demo';
             this.ui.updateConnectionStatus('demo');
-            this.ui.showToast('Demo Mode! Use WASD or Arrows to drive.', 'info');
+            this.ui.showToast('Demo Mode! Use joystick or WASD/Arrows.', 'info');
         }
     }
     
