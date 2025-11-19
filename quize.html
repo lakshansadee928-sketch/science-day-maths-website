@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Combined Maths Challenge</title>
-   <link rel="icon" href="1.png" type="image/png"> 
+  
+  <!-- Icons -->
+  <link rel="icon" href="1.png" type="image/png"> 
+  <link rel="icon" type="image/x-icon" href="math_quizico.ico">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" type="image/x-icon" href="math_quizico.ico">
-
-  
-  <!-- Font and Icon Libraries -->
   <link id="font-link" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
   <!-- Core Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -22,23 +23,22 @@
 
   <!-- Custom Styles -->
   <style>
-    /* --- THEME DEFINITIONS --- */
     :root {
-      /* Default Theme: Cyberpunk */
       --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e); --primary-accent: #3b82f6; --secondary-accent: #ec4899;
       --text-primary: #f3f4f6; --text-secondary: #d1d5db; --glass-bg: rgba(31, 41, 55, 0.7); --glass-border: rgba(255, 255, 255, 0.15);
       --btn-gradient: linear-gradient(90deg, #3b82f6, #ec4899); --correct-color: #10b981; --incorrect-color: #ef4444; --timeout-color: #facc15;
       --glow-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
     }
-    .theme-nebula { --bg-gradient: linear-gradient(135deg, #1d2b64, #4f46e5, #7e22ce, #a21caf); --primary-accent: #a78bfa; --secondary-accent: #f472b6; --text-primary: #e5e7eb; --text-secondary: #d1d5db; --glass-bg: rgba(49, 46, 129, 0.7); --glass-border: rgba(255, 255, 255, 0.15); --btn-gradient: linear-gradient(90deg, #8b5cf6, #d946ef); --glow-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
-    .theme-sunrise { --bg-gradient: linear-gradient(135deg, #075985, #0ea5e9, #f97316, #facc15); --primary-accent: #f97316; --secondary-accent: #fde047; --text-primary: #0c4a6e; --text-secondary: #0369a1; --glass-bg: rgba(255, 255, 255, 0.6); --glass-border: rgba(12, 74, 110, 0.2); --btn-gradient: linear-gradient(90deg, #f59e0b, #fbbf24); --glow-shadow: 0 0 20px rgba(249, 115, 22, 0.5); }
-    .theme-8bit { --bg-gradient: linear-gradient(135deg, #111827, #1f2937, #111827); --primary-accent: #39ff14; --secondary-accent: #ff00ff; --text-primary: #ffffff; --text-secondary: #e5e5e5; --glass-bg: rgba(55, 65, 81, 0.8); --glass-border: rgba(57, 255, 20, 0.4); --btn-gradient: linear-gradient(90deg, #39ff14, #00ffff); --glow-shadow: 0 0 15px rgba(57, 255, 20, 0.6); }
-    .theme-monochrome { --bg-gradient: linear-gradient(135deg, #1f2937, #4b5563, #d1d5db); --primary-accent: #fbbf24; --secondary-accent: #fca5a5; --text-primary: #111827; --text-secondary: #374151; --glass-bg: rgba(255, 255, 255, 0.8); --glass-border: rgba(55, 65, 81, 0.2); --btn-gradient: linear-gradient(90deg, #f59e0b, #facc15); --glow-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
-    .theme-forest { --bg-gradient: linear-gradient(135deg, #064e3b, #15803d, #22c55e, #4ade80); --primary-accent: #22c55e; --secondary-accent: #86efac; --text-primary: #f0fdf4; --text-secondary: #d4d4d4; --glass-bg: rgba(6, 78, 59, 0.7); --btn-gradient: linear-gradient(90deg, #16a34a, #4ade80); }
-    .theme-ocean { --bg-gradient: linear-gradient(135deg, #0c4a6e, #0284c7, #38bdf8, #7dd3fc); --primary-accent: #38bdf8; --secondary-accent: #7dd3fc; --text-primary: #e0f2fe; --text-secondary: #bfdbfe; --glass-bg: rgba(2, 132, 199, 0.7); --btn-gradient: linear-gradient(90deg, #0284c7, #38bdf8); }
-    .theme-sunset { --bg-gradient: linear-gradient(135deg, #be123c, #f43f5e, #fb923c, #fcd34d); --primary-accent: #fb923c; --secondary-accent: #fed7aa; --text-primary: #fefce8; --text-secondary: #d4d4d4; --glass-bg: rgba(244, 63, 94, 0.7); --btn-gradient: linear-gradient(90deg, #f43f5e, #fb923c); }
+    /* Themes */
+    .theme-nebula { --bg-gradient: linear-gradient(135deg, #1d2b64, #4f46e5, #7e22ce, #a21caf); --primary-accent: #a78bfa; --secondary-accent: #f472b6; --text-primary: #e5e7eb; --glass-bg: rgba(49, 46, 129, 0.7); --btn-gradient: linear-gradient(90deg, #8b5cf6, #d946ef); }
+    .theme-sunrise { --bg-gradient: linear-gradient(135deg, #075985, #0ea5e9, #f97316, #facc15); --primary-accent: #f97316; --secondary-accent: #fde047; --text-primary: #0c4a6e; --text-secondary: #0369a1; --glass-bg: rgba(255, 255, 255, 0.6); --glass-border: rgba(12, 74, 110, 0.2); --btn-gradient: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .theme-8bit { --bg-gradient: linear-gradient(135deg, #111827, #1f2937, #111827); --primary-accent: #39ff14; --secondary-accent: #ff00ff; --glass-bg: rgba(55, 65, 81, 0.8); --glass-border: rgba(57, 255, 20, 0.4); --btn-gradient: linear-gradient(90deg, #39ff14, #00ffff); }
+    .theme-monochrome { --bg-gradient: linear-gradient(135deg, #1f2937, #4b5563, #d1d5db); --primary-accent: #fbbf24; --secondary-accent: #fca5a5; --text-primary: #111827; --glass-bg: rgba(255, 255, 255, 0.8); --glass-border: rgba(55, 65, 81, 0.2); --btn-gradient: linear-gradient(90deg, #f59e0b, #facc15); }
+    .theme-forest { --bg-gradient: linear-gradient(135deg, #064e3b, #15803d, #22c55e, #4ade80); --primary-accent: #22c55e; --secondary-accent: #86efac; --glass-bg: rgba(6, 78, 59, 0.7); --btn-gradient: linear-gradient(90deg, #16a34a, #4ade80); }
+    .theme-ocean { --bg-gradient: linear-gradient(135deg, #0c4a6e, #0284c7, #38bdf8, #7dd3fc); --primary-accent: #38bdf8; --secondary-accent: #7dd3fc; --glass-bg: rgba(2, 132, 199, 0.7); --btn-gradient: linear-gradient(90deg, #0284c7, #38bdf8); }
+    .theme-sunset { --bg-gradient: linear-gradient(135deg, #be123c, #f43f5e, #fb923c, #fcd34d); --primary-accent: #fb923c; --secondary-accent: #fed7aa; --glass-bg: rgba(244, 63, 94, 0.7); --btn-gradient: linear-gradient(90deg, #f43f5e, #fb923c); }
 
-    /* --- BASE STYLES & ANIMATIONS --- */
+    /* Base & Animation */
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: var(--text-primary); background-size: 300% 300%; animation: gradient-animation 20s ease infinite; opacity: 0; animation: page-load 1.2s ease-out forwards; }
     .view { display: none; animation: view-fade-in 0.6s ease-out forwards; } .view.active { display: flex; }
@@ -48,7 +48,7 @@
     .theme-sunrise .custom-input, .theme-monochrome .custom-input { background: rgba(0, 0, 0, 0.05); border-color: rgba(0, 0, 0, 0.1); }
     .custom-input:focus, .custom-select:focus { outline: none; border-color: var(--primary-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-accent) 30%, transparent); }
     .modal { display: none; } .modal.active { display: flex; }
-    .modal-close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; z-index: 10; width: 2.5rem; height: 2.5rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); }
+    .modal-close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; z-index: 10; width: 2.5rem; height: 2.5rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); transition: all 0.2s; }
     .modal-close-btn:hover { transform: scale(1.1) rotate(90deg); color: var(--primary-accent); }
     .option-btn { transition: all 0.2s ease-in-out; } .option-btn:hover:not(.selected) { background-color: rgba(255,255,255,0.15); border-color: var(--primary-accent); transform: translateY(-2px); }
     .option-btn.selected { border-color: var(--primary-accent); transform: translateY(-3px) scale(1.02); box-shadow: 0 4px 15px color-mix(in srgb, var(--primary-accent) 50%, transparent); }
@@ -57,9 +57,8 @@
     .timer-bar-color { background: var(--primary-accent); transition: width 0.25s linear; }
     .timer-low { background: var(--incorrect-color) !important; box-shadow: 0 0 20px var(--incorrect-color); animation: pulse-low 0.8s infinite; }
     .achievement-unlocked { position: fixed; top: 20px; right: 20px; z-index: 1000; background: linear-gradient(to right, #fde047, #f97316); color: black; padding: 1rem 1.5rem; border-radius: 0.75rem; box-shadow: 0 5px 20px rgba(0,0,0,0.4); animation: slideIn-achievement 0.5s ease-out forwards, fadeOut-achievement 0.5s ease-in 4.5s forwards; }
-    #question { overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; } /* Ensures long questions wrap correctly */
-    
-    /* --- KEYFRAME ANIMATIONS --- */
+    #question { overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
+
     @keyframes page-load { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes view-fade-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
@@ -275,10 +274,35 @@
     let timerStartTime, timerInterval, isQuizActive = false, selectedOptionValue = null, hintUsed = false;
     let categoryChart;
 
-    // --- INITIALIZATION ---
-    function initializeQuiz() {
+    // --- INITIALIZATION WITH SERVER SYNC ---
+    async function initializeQuiz() {
+      // 1. Try to fetch the latest data.json from GitHub (Static Hosting Sync)
+      try {
+          const response = await fetch('data.json?t=' + new Date().getTime());
+          if (response.ok) {
+              const serverData = await response.json();
+              if(serverData.questions) localStorage.setItem("quizApp_questions", JSON.stringify(serverData.questions));
+              if(serverData.settings) localStorage.setItem("quizApp_settings", JSON.stringify(serverData.settings));
+              if(serverData.timePerQ) localStorage.setItem("quizApp_timePerQ", serverData.timePerQ);
+              console.log("Data synced from server.");
+          }
+      } catch (error) {
+          console.log("Offline or local mode: Using cached data.");
+      }
+
+      // 2. Load Data from LocalStorage (updated or cached)
       currentSettings = JSON.parse(localStorage.getItem("quizApp_settings")) || { ...defaultSettings };
-      allQuestions = (JSON.parse(localStorage.getItem("quizApp_questions")) || defaultQuestions).map(q => ({ ...q, category: q.category || 'General', hint: q.hint || ''}));
+      
+      // Clean and normalize questions
+      const rawQuestions = JSON.parse(localStorage.getItem("quizApp_questions")) || defaultQuestions;
+      allQuestions = rawQuestions.map(q => ({ 
+          ...q, 
+          category: q.category || 'General', 
+          hint: q.hint || '',
+          // Ensure isActive defaults to true if undefined
+          isActive: q.isActive !== false 
+      }));
+
       timePerQ = parseInt(localStorage.getItem("quizApp_timePerQ")) || 30;
       usersDB = JSON.parse(localStorage.getItem("quizApp_users")) || {};
       currentUserKey = localStorage.getItem("quizApp_currentUserKey");
@@ -299,6 +323,23 @@
       setupEventListeners();
     }
 
+    // Helper to get localized string safely
+    function getLocalizedText(field, lang = currentLang) {
+        if (typeof field === 'string') return field;
+        if (typeof field === 'object' && field !== null) {
+            return field[lang] || field['en'] || ''; // Fallback to EN
+        }
+        return '';
+    }
+
+    function getLocalizedList(field, lang = currentLang) {
+        if (Array.isArray(field)) return field; // Legacy format
+        if (typeof field === 'object' && field !== null) {
+            return field[lang] || field['en'] || [];
+        }
+        return [];
+    }
+
     // --- VIEW & UI MANAGEMENT ---
     function showView(viewName) {
         document.getElementById('login-view').classList.toggle('active', viewName === 'login');
@@ -312,6 +353,7 @@
       document.getElementById('quiz-box').classList.remove('active');
       document.getElementById('quiz-header').classList.add('hidden');
       document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+      document.getElementById('main-title').textContent = currentSettings.title;
       document.getElementById('welcome-username').textContent = currentUser.name;
       updateLeaderboard('wins');
     }
@@ -333,6 +375,7 @@
         document.body.className = `transition-colors duration-500 ${userTheme}`;
         document.querySelectorAll('.modal').forEach(m => { m.classList.remove('anim-fade', 'anim-slide', 'anim-flip'); m.classList.add(userAnimation); });
         document.title = currentSettings.title;
+        
         const logoHTML = currentSettings.logoUrl ? `<img src="${currentSettings.logoUrl}" alt="Logo" class="h-8 sm:h-10">` : `<span class="text-base sm:text-xl">${currentSettings.title}</span>`;
         document.getElementById('logo-container').innerHTML = logoHTML;
         document.getElementById('logo-container-login').innerHTML = logoHTML;
@@ -341,7 +384,7 @@
         fontLink.href = `https://fonts.googleapis.com/css2?family=${userFont.replace(' ', '+')}:wght@400;600;700;800&display=swap`;
         document.body.style.fontFamily = `'${userFont}', sans-serif`;
 
-        const bg = currentSettings.background;
+        const bg = currentSettings.background || { type: 'gradient' };
         const customBgDiv = document.getElementById('custom-bg');
         document.body.style.background = (bg.type !== 'image' || !bg.imageUrl) ? '' : 'none';
         customBgDiv.style.backgroundImage = (bg.type === 'image' && bg.imageUrl) ? `url(${bg.imageUrl})` : '';
@@ -417,19 +460,11 @@
         }
     }
     
-    /**
-     * Shuffles an array in place using the Fisher-Yates (aka Knuth) shuffle algorithm.
-     * This provides a less biased and more robust shuffle than array.sort().
-     * @param {Array} array The array to shuffle.
-     */
     function shuffleArray(array) {
         let currentIndex = array.length, randomIndex;
-        // While there remain elements to shuffle.
         while (currentIndex > 0) {
-            // Pick a remaining element.
             randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex--;
-            // And swap it with the current element.
             [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
         }
         return array;
@@ -440,12 +475,15 @@
         playSound('clickSound');
         gameMode = document.getElementById('game-mode-select').value;
         const category = document.getElementById('category-select').value;
+        
+        // Filter Questions based on category and active status
         let availableQuestions = allQuestions.filter(q => q.isActive && (category === 'all' || q.category === category));
+        
         if(availableQuestions.length < (gameMode === 'classic' ? ROUND_SIZE : 1)) {
             alert(`Not enough questions in the '${category}' category. Please ask an admin to add more.`);
             return;
         }
-        // Use the improved Fisher-Yates shuffle algorithm
+        
         currentRoundQuestions = shuffleArray(availableQuestions);
         isQuizActive = true; roundQuestionIndex = 0; roundAnswers = [];
         document.getElementById('startScreen').classList.remove('active');
@@ -465,10 +503,16 @@
     function loadQuestion() {
       const q = currentRoundQuestions[roundQuestionIndex];
       updateHeaderUI();
-      document.getElementById("question").innerHTML = q.question;
+      
+      // Render localized question text
+      document.getElementById("question").innerHTML = getLocalizedText(q.question);
+      
       const optionsDiv = document.getElementById("options");
       optionsDiv.innerHTML = "";
-      q.options.forEach((opt, index) => {
+      
+      // Render localized options
+      const optionsList = getLocalizedList(q.options);
+      optionsList.forEach((opt, index) => {
         const btn = document.createElement("button");
         btn.className = "option-btn option-appear py-4 px-6 rounded-xl bg-white/10 border-2 border-white/15";
         btn.innerHTML = opt;
@@ -476,10 +520,15 @@
         btn.onclick = () => selectOption(btn, opt);
         optionsDiv.appendChild(btn);
       });
+      
       document.getElementById('confirm-answer-btn').classList.add('opacity-50', 'cursor-not-allowed');
       document.getElementById('confirm-answer-btn').disabled = true;
-      document.getElementById('hint-btn').disabled = !q.hint;
+      
+      // Handle Hint button state
+      const hintText = getLocalizedText(q.hint);
+      document.getElementById('hint-btn').disabled = !hintText;
       document.getElementById('hint-display').textContent = '';
+      
       selectedOptionValue = null; hintUsed = false;
       MathJax.typesetPromise().then(startTimer);
     }
@@ -497,7 +546,10 @@
       if(timerInterval) clearInterval(timerInterval);
       isQuizActive = false;
       const q = currentRoundQuestions[roundQuestionIndex];
-      let isCorrect = selected === q.answer;
+      
+      // Get correct answer string for comparison
+      const correctAns = getLocalizedText(q.answer);
+      let isCorrect = selected === correctAns;
       
       let resultType = 'incorrect';
       if (selected === null) { playSound("timeoutSound"); isCorrect = false; resultType = 'timeout'; }
@@ -505,7 +557,7 @@
       else { playSound("wrongSound"); }
 
       updateUserStats(q, isCorrect);
-      roundAnswers.push({ question: q, selected, isCorrect });
+      roundAnswers.push({ question: q, selected, isCorrect, correctStr: correctAns });
       
       if (gameMode === 'survival' && !isCorrect) {
           setTimeout(endGame, 500);
@@ -530,6 +582,7 @@
             document.getElementById('complete-score-display').innerHTML = `${score} / ${ROUND_SIZE}`;
             if (score === ROUND_SIZE) {
                 playSound('winSound');
+                confetti();
                 document.getElementById('complete-subtitle').textContent = translations[currentLang]['complete-subtitle-win'];
                 currentUser.stats.roundsWon = (currentUser.stats.roundsWon || 0) + 1;
                 unlockAchievement('first_win');
@@ -576,7 +629,7 @@
     function showHint() {
         if(hintUsed) return;
         const q = currentRoundQuestions[roundQuestionIndex];
-        document.getElementById('hint-display').textContent = q.hint;
+        document.getElementById('hint-display').textContent = getLocalizedText(q.hint);
         timerStartTime -= HINT_PENALTY_S * 1000;
         hintUsed = true;
         document.getElementById('hint-btn').disabled = true;
@@ -641,7 +694,7 @@
         const data = resultData[type];
         document.getElementById('result-icon').innerHTML = data.icon;
         document.getElementById('result-title').textContent = data.title;
-        document.getElementById('explanation-text').innerHTML = question.explanation;
+        document.getElementById('explanation-text').innerHTML = getLocalizedText(question.explanation);
         toggleModal('resultModal', true);
         MathJax.typesetPromise();
     }
@@ -671,12 +724,17 @@
         const container = document.getElementById('review-questions');
         const t = translations[currentLang];
         container.innerHTML = roundAnswers.map((ans, i) => {
+            const qText = getLocalizedText(ans.question.question);
+            const explText = getLocalizedText(ans.question.explanation);
+            const correctStr = ans.correctStr;
+            
             const yourAnsHTML = `${t['your-answer-label']} <span class="font-semibold ${ans.isCorrect ? 'text-green-400' : 'text-red-400'}">${ans.selected || `<span class='italic'>${t['not-answered-text']}</span>`}</span>`;
-            const correctAnsHTML = !ans.isCorrect ? `<br>${t['correct-answer-label']} <span class="font-semibold text-green-400">${ans.question.answer}</span>` : '';
+            const correctAnsHTML = !ans.isCorrect ? `<br>${t['correct-answer-label']} <span class="font-semibold text-green-400">${correctStr}</span>` : '';
+            
             return `<div class="bg-black/30 p-4 rounded-lg border-l-4 ${ans.isCorrect ? 'border-green-500/50' : 'border-red-500/50'}">
-                <p class="font-bold">Q${i+1}: ${ans.question.question}</p>
+                <p class="font-bold">Q${i+1}: ${qText}</p>
                 <p class="mt-2 pl-4 text-gray-300">${yourAnsHTML}${correctAnsHTML}</p>
-                <div class="mt-3 pt-3 border-t border-gray-700/50 text-sm"><strong class="text-[var(--primary-accent)]">${t['explanation-label']}</strong> <span class="text-gray-400 max-w-prose">${ans.question.explanation}</span></div>
+                <div class="mt-3 pt-3 border-t border-gray-700/50 text-sm"><strong class="text-[var(--primary-accent)]">${t['explanation-label']}</strong> <span class="text-gray-400 max-w-prose">${explText}</span></div>
             </div>`;
         }).join('');
         toggleModal('reviewModal', true);
