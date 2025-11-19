@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Control Panel - Combined Maths Challenge</title>
- <link rel="icon" href="2.jpg" type="image/png">
+  <!-- Fallback Icon if 2.jpg isn't present -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
   
   <link id="font-link" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -37,13 +38,11 @@
     .scroll-container { overflow-y: auto; max-height: 500px; padding-right: 8px; }
     #save-indicator { transition: opacity 0.5s ease-in-out; }
     
-    /* IMPROVEMENT: Added new animations */
     @keyframes slideInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes page-fade-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     @keyframes content-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* IMPROVEMENT: Scrollbar styling for a cleaner look */
     .scroll-container::-webkit-scrollbar { width: 6px; }
     .scroll-container::-webkit-scrollbar-track { background: transparent; }
     .scroll-container::-webkit-scrollbar-thumb { background: var(--primary-accent); border-radius: 3px; }
@@ -51,19 +50,17 @@
 </head>
 <body class="p-4 md:p-8 transition-colors duration-500">
   
-  <div id="main-content" class="max-w-7xl mx-auto hidden"> <!-- IMPROVEMENT: Increased max-width slightly for larger screens -->
+  <div id="main-content" class="max-w-7xl mx-auto hidden">
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <!-- IMPROVEMENT: Made header text responsive -->
         <h1 class="text-3xl md:text-4xl font-bold text-[var(--primary-accent)] flex items-center"><i class="fas fa-cogs btn-icon"></i> Admin Control Panel</h1>
         <div id="save-indicator" class="flex items-center gap-2 text-lg text-gray-400 opacity-0 transition-opacity duration-500"><i class="fas fa-check-circle"></i><span></span></div>
     </header>
 
     <div class="mb-6 border-b border-[var(--glass-border)]">
-      <!-- IMPROVEMENT: Tabs now scroll horizontally on small screens instead of wrapping awkwardly -->
       <nav class="flex overflow-x-auto pb-px" aria-label="Tabs">
         <button onclick="openTab(event, 'dashboard')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-[var(--primary-accent)] text-[var(--primary-accent)]"><i class="fas fa-tachometer-alt btn-icon"></i> Dashboard</button>
         <button onclick="openTab(event, 'questions')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-question-circle btn-icon"></i> Questions</button>
-        <button onclick="openTab(event, 'settings')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-palette btn-icon"></i> Appearance & Settings</button>
+        <button onclick="openTab(event, 'settings')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-palette btn-icon"></i> Settings</button>
         <button onclick="openTab(event, 'userdata')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-users btn-icon"></i> User Data</button>
         <button onclick="openTab(event, 'data_management')" class="tab-button whitespace-nowrap py-4 px-4 border-b-2 font-medium text-lg border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"><i class="fas fa-database btn-icon"></i> Data Management</button>
       </nav>
@@ -73,15 +70,14 @@
     <div id="dashboard" class="tab-content active glassmorphism-glow p-6 rounded-lg shadow-lg space-y-8">
         <div class="card p-4">
           <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] mb-4 flex items-center"><i class="fas fa-chart-bar btn-icon"></i> Stats at a Glance</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-green-400" id="stats-live-users">0</p><p class="text-[var(--text-secondary)]">Live Users</p></div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-green-400" id="stats-live-users">0</p><p class="text-[var(--text-secondary)]">Active Users (Local)</p></div>
             <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-[var(--primary-accent)]" id="stats-total-questions">0</p><p class="text-[var(--text-secondary)]">Active / Total Questions</p></div>
-            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-[var(--primary-accent)]" id="stats-total-users">0</p><p class="text-[var(--text-secondary)]">Total Users</p></div>
+            <div class="bg-black/20 p-4 rounded-lg text-center card"><p class="text-4xl font-bold text-[var(--primary-accent)]" id="stats-total-users">0</p><p class="text-[var(--text-secondary)]">Total Registered (Local)</p></div>
           </div>
         </div>
         <div class="card p-4 pt-6 border-t border-[var(--glass-border)]">
             <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] mb-4 flex items-center"><i class="fas fa-chart-pie btn-icon"></i> Question Bank Overview</h2>
-            <!-- IMPROVEMENT: Made charts responsive -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div class="bg-black/20 p-4 rounded-lg relative h-64 md:h-80"><canvas id="difficulty-chart"></canvas></div>
                 <div class="bg-black/20 p-4 rounded-lg relative h-64 md:h-80"><canvas id="category-chart"></canvas></div>
@@ -96,6 +92,7 @@
           <div><label for="titleInput" class="block mb-2 font-semibold">Quiz Title:</label><input type="text" id="titleInput" class="custom-input"></div>
           <div><label for="timeInput" class="block mb-2 font-semibold">⏱️ Time per question (seconds):</label><input type="number" id="timeInput" class="custom-input" min="5" value="30"></div>
         </div>
+        
         <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-paint-brush btn-icon"></i> Appearance</h2>
         <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -110,8 +107,10 @@
                 <label>Background Blur: <span id="bgBlurValue">0</span>px</label><input type="range" id="bgBlurInput" min="0" max="20" value="0" class="w-full">
             </div>
         </div>
+
         <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-volume-up btn-icon"></i> Audio Settings</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" id="audio-settings-grid"></div>
+        
         <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-trophy btn-icon"></i> Prize Tiers</h2>
         <div class="space-y-4" id="prize-tiers-container"></div>
     </div>
@@ -130,7 +129,6 @@
     <div id="userdata" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
             <h2 class="text-3xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-user-friends btn-icon"></i> User Database</h2>
-            <!-- IMPROVEMENT: Button group wraps nicely on mobile -->
             <div class="flex flex-wrap gap-2 justify-center">
                 <button onclick="downloadUserCSV()" class="px-5 py-2 bg-blue-600 rounded-md hover:bg-blue-700 font-bold card"><i class="fas fa-file-csv btn-icon"></i> Download CSV</button>
                 <button onclick="clearAllUsers()" class="px-5 py-2 bg-red-600 rounded-md hover:bg-red-700 font-bold card"><i class="fas fa-trash btn-icon"></i> Clear All</button>
@@ -138,32 +136,44 @@
         </div>
         <input type="text" id="user-search-input" class="custom-input mb-6" placeholder="🔎 Search by name or school...">
         <div class="overflow-x-auto scroll-container">
-            <table class="w-full text-left min-w-[600px]"><!-- IMPROVEMENT: Added min-width to prevent squishing on small screens -->
-              <thead class="bg-black/20"><tr><th class="p-3">Name</th><th class="p-3">School</th><th class="p-3 text-center">Rounds Won</th><th class="p-3 text-center">Survival High Score</th><th class="p-3 text-center">Actions</th></tr></thead><tbody id="userDataBody"></tbody></table>
+            <table class="w-full text-left min-w-[600px]">
+              <thead class="bg-black/20"><tr><th class="p-3">Name</th><th class="p-3">School</th><th class="p-3 text-center">Rounds Won</th><th class="p-3 text-center">Actions</th></tr></thead><tbody id="userDataBody"></tbody></table>
         </div>
     </div>
     
-    <!-- Data Management -->
+    <!-- Data Management (Crucial for GitHub Pages) -->
     <div id="data_management" class="tab-content glassmorphism-glow p-6 rounded-lg shadow-lg space-y-8">
-        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] flex items-center"><i class="fas fa-cogs btn-icon"></i> Actions</h2>
+        
+        <div class="card p-4 bg-blue-900/30 rounded-lg border border-blue-500/30">
+            <h2 class="text-2xl font-bold text-white mb-2 flex items-center"><i class="fab fa-github btn-icon"></i> GitHub Pages Deployment</h2>
+            <p class="mb-2 text-gray-300">Since GitHub Pages is static, it cannot save changes automatically. Follow these steps:</p>
+            <ol class="list-decimal pl-5 space-y-1 mb-4 text-sm text-gray-300">
+                <li>Make all your changes (Questions, Settings) here.</li>
+                <li>Click <strong>"Save Local Changes"</strong> first.</li>
+                <li>Click <strong>"Download data.json"</strong> below.</li>
+                <li>Upload the downloaded <code>data.json</code> file to your GitHub Repository root folder.</li>
+            </ol>
+            <button onclick="exportForGitHub()" class="w-full px-6 py-4 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 text-lg card transition-all"><i class="fas fa-cloud-download-alt btn-icon"></i> Download data.json for GitHub</button>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-cogs btn-icon"></i> Local Actions</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button onclick="saveAll()" class="w-full px-6 py-4 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 text-lg card"><i class="fas fa-save btn-icon"></i> Save All Changes</button>
+            <button onclick="saveAll()" class="w-full px-6 py-4 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 text-lg card"><i class="fas fa-save btn-icon"></i> Save Local Changes</button>
             <button onclick="resetAllSettings()" class="w-full px-4 py-3 bg-orange-600 rounded-md hover:bg-orange-700 font-bold card"><i class="fas fa-undo btn-icon"></i> Reset All Settings</button>
         </div>
-        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-exchange-alt btn-icon"></i> Import / Export</h2>
+
+        <h2 class="text-2xl font-semibold text-[var(--secondary-accent)] pt-6 border-t border-[var(--glass-border)] flex items-center"><i class="fas fa-file-import btn-icon"></i> Import / Export</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Full Backup (JSON)</h3><p class="text-sm text-[var(--text-secondary)]">Save/load all settings, questions, and users.</p><div class="flex gap-2 flex-wrap"><button onclick="exportAllData()" class="px-5 py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700"><i class="fas fa-download btn-icon"></i> Export</button><label for="import-data-input" class="file-input-label"><i class="fas fa-upload btn-icon"></i> Import</label><input type="file" id="import-data-input" class="hidden" accept=".json"></div></div>
-            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Questions Only (CSV)</h3><p class="text-sm text-[var(--text-secondary)]">Easily edit questions in a spreadsheet.</p><div class="flex gap-2 flex-wrap"><button onclick="exportQuestionsToCSV()" class="px-5 py-2 font-bold text-white bg-teal-600 rounded-md hover:bg-teal-700"><i class="fas fa-file-csv btn-icon"></i> Export</button><label for="import-questions-csv" class="file-input-label bg-teal-600/80"><i class="fas fa-file-import btn-icon"></i> Import</label><input type="file" id="import-questions-csv" class="hidden" accept=".csv"></div></div>
+            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Full Backup (JSON)</h3><p class="text-sm text-[var(--text-secondary)]">Restore a previous state locally.</p><div class="flex gap-2 flex-wrap"><button onclick="exportAllData()" class="px-5 py-2 font-bold text-white bg-purple-600 rounded-md hover:bg-purple-700"><i class="fas fa-download btn-icon"></i> Backup</button><label for="import-data-input" class="file-input-label"><i class="fas fa-upload btn-icon"></i> Restore</label><input type="file" id="import-data-input" class="hidden" accept=".json"></div></div>
+            <div class="card p-4 bg-black/10 rounded-lg space-y-3"><h3 class="font-semibold">Questions Only (CSV)</h3><p class="text-sm text-[var(--text-secondary)]">Edit questions in Excel/Sheets.</p><div class="flex gap-2 flex-wrap"><button onclick="exportQuestionsToCSV()" class="px-5 py-2 font-bold text-white bg-teal-600 rounded-md hover:bg-teal-700"><i class="fas fa-file-csv btn-icon"></i> Export CSV</button><label for="import-questions-csv" class="file-input-label bg-teal-600/80"><i class="fas fa-file-import btn-icon"></i> Import CSV</label><input type="file" id="import-questions-csv" class="hidden" accept=".csv"></div></div>
         </div>
     </div>
   </div>
 
   <!-- MODALS -->
-  <!-- IMPROVEMENT: Modal is now more responsive to screen size -->
   <div id="questionModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
     <div class="modal-content glassmorphism-glow p-6 rounded-xl w-full max-w-lg lg:max-w-5xl space-y-4 overflow-y-auto max-h-[95vh]">
       <h3 id="modalTitle" class="text-2xl font-bold text-[var(--primary-accent)]"></h3>
-      <!-- IMPROVEMENT: Modal layout is now a single column on mobile, two columns on larger screens -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="space-y-4">
           <!-- English Inputs -->
@@ -189,7 +199,6 @@
         <div class="space-y-4">
           <div class="bg-black/30 p-4 rounded-lg card">
             <h4 class="font-bold text-lg mb-2 text-[var(--secondary-accent)]">Live Preview (EN)</h4>
-            <!-- IMPROVEMENT: Text now breaks correctly to prevent overflow -->
             <div id="previewQuestion" class="font-bold text-xl min-h-[3rem] break-words"></div>
             <div id="previewOptions" class="space-y-2 my-2"></div>
             <div class="break-words"><strong class="text-green-400">Answer:</strong> <span id="previewAnswer"></span></div>
@@ -225,8 +234,18 @@
     let questions = [], users = {}, editingIndex = null, logoDataUrl = null, bgImageDataUrl = null, soundDataUrls = {};
     let difficultyChart, categoryChart;
     const ADMIN_PASSWORD = "admin";
-    const defaultSettings = { title: 'Combined Maths Challenge', logoUrl: null, timePerQ: 30, prizeTiers: { tier1: { name: 'Math God', time: 10, hard: 1 }, tier2: { name: 'Math Expert', time: 20 }, tier3: { name: 'Math Champion' } }, background: { type: 'gradient', imageUrl: null, blur: 0 }, theme: 'theme-cyberpunk', font: 'Inter', animation: 'anim-fade', sounds: {} };
-    const defaultQuestions = [{ id: 0, question: {en: 'Welcome!', si: 'සාදරයෙන් පිළිගනිමු!'}, options: {en: ['OK'], si: ['හරි']}, answer: {en: 'OK', si: 'හරි'}, explanation: {en: 'Add questions via the admin panel.', si: 'පරිපාලක පැනලය හරහා ප්‍රශ්න එකතු කරන්න.'}, difficulty: 'easy', isActive: true, category: 'General', hint: {en: '', si: ''} }];
+    const defaultSettings = { 
+        title: 'Combined Maths Challenge', 
+        logoUrl: null, 
+        timePerQ: 30, 
+        prizeTiers: { tier1: { name: 'Math God', time: 10, hard: 1 }, tier2: { name: 'Math Expert', time: 20 }, tier3: { name: 'Math Champion' } }, 
+        background: { type: 'gradient', imageUrl: null, blur: 0 }, 
+        theme: 'theme-cyberpunk', 
+        font: 'Inter', 
+        animation: 'anim-fade', 
+        sounds: {} 
+    };
+    const defaultQuestions = [{ id: 0, question: {en: 'Welcome!', si: 'සාදරයෙන් පිළිගනිමු!'}, options: {en: ['OK', 'Thanks'], si: ['හරි', 'ස්තූතියි']}, answer: {en: 'OK', si: 'හරි'}, explanation: {en: 'Add questions via the admin panel.', si: 'පරිපාලක පැනලය හරහා ප්‍රශ්න එකතු කරන්න.'}, difficulty: 'easy', isActive: true, category: 'General', hint: {en: '', si: ''} }];
 
     // --- INITIALIZATION & AUTH ---
     function authenticate() {
@@ -243,14 +262,26 @@
         questions = (JSON.parse(localStorage.getItem("quizApp_questions")) || defaultQuestions).map(q => ({...q, isActive: q.isActive !== false, difficulty: q.difficulty || 'easy', category: q.category || 'General' }));
         users = JSON.parse(localStorage.getItem("quizApp_users")) || {};
         
+        // Load Form Values
         document.getElementById("timeInput").value = localStorage.getItem("quizApp_timePerQ") || settings.timePerQ;
         document.getElementById('titleInput').value = settings.title;
         logoDataUrl = settings.logoUrl; if(logoDataUrl) document.getElementById('logoPreview').src = logoDataUrl;
-        document.getElementById('themeInput').value = settings.theme; document.getElementById('fontInput').value = settings.font; document.getElementById('animationInput').value = settings.animation;
-        document.getElementById('bgChoice').value = settings.background.type; bgImageDataUrl = settings.background.imageUrl; document.getElementById('bgBlurInput').value = settings.background.blur; document.getElementById('bgBlurValue').textContent = settings.background.blur;
+        document.getElementById('themeInput').value = settings.theme; 
+        document.getElementById('fontInput').value = settings.font; 
+        document.getElementById('animationInput').value = settings.animation;
+        document.getElementById('bgChoice').value = settings.background?.type || 'gradient'; 
+        bgImageDataUrl = settings.background?.imageUrl; 
+        document.getElementById('bgBlurInput').value = settings.background?.blur || 0; 
+        document.getElementById('bgBlurValue').textContent = settings.background?.blur || 0;
         if(settings.sounds) soundDataUrls = { ...settings.sounds };
         
-        renderSoundInputs(); renderPrizeTiers(settings.prizeTiers); renderQuestions(); renderUserData(); updateDashboardStats(); renderDashboardCharts(); toggleBgImageSettings();
+        renderSoundInputs(); 
+        renderPrizeTiers(settings.prizeTiers); 
+        renderQuestions(); 
+        renderUserData(); 
+        updateDashboardStats(); 
+        renderDashboardCharts(); 
+        toggleBgImageSettings();
     }
 
     function setupEventListeners() {
@@ -262,7 +293,6 @@
       document.getElementById("user-search-input").addEventListener('input', filterUsers, { passive: true });
       document.getElementById("import-data-input").addEventListener('change', importAllData, { passive: true });
       document.getElementById("import-questions-csv").addEventListener('change', importQuestionsFromCSV, { passive: true });
-      setInterval(updateLiveUserCount, 5000);
     }
 
     // --- DASHBOARD & STATS ---
@@ -272,12 +302,12 @@
         updateLiveUserCount();
     }
     function updateLiveUserCount() {
-        const liveUsers = JSON.parse(localStorage.getItem('quizApp_liveUsers')) || {};
-        document.getElementById('stats-live-users').textContent = Object.values(liveUsers).filter(ts => ts > (Date.now() - 30000)).length;
+        // Only shows users on this specific machine
+        document.getElementById('stats-live-users').textContent = Object.keys(users).length > 0 ? "1 (Admin)" : "0";
     }
     function renderDashboardCharts() {
-        // IMPROVEMENT: Added maintainAspectRatio: false to make charts fill their container
         const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: 'white' } }, title: { display: true, color: 'white' } } };
+        
         const difficultyCtx = document.getElementById('difficulty-chart').getContext('2d');
         const difficultyCounts = questions.reduce((acc, q) => { acc[q.difficulty] = (acc[q.difficulty] || 0) + 1; return acc; }, {});
         if(difficultyChart) difficultyChart.destroy();
@@ -313,7 +343,6 @@
         const div = document.createElement('div');
         div.className = "bg-black/20 p-4 rounded-lg border-l-4 flex flex-col sm:flex-row justify-between items-start gap-4 card";
         div.style.borderColor = q.isActive ? 'var(--secondary-accent)' : 'var(--inactive-color)';
-        // IMPROVEMENT: Question text now wraps properly and layout is more robust on mobile
         div.innerHTML = `<div class="flex-grow w-full"><p class="font-bold text-lg break-words">${getEnText(q.question)}</p><p class="text-sm break-words"><strong class="text-[var(--correct-color)]">A:</strong> ${getEnText(q.answer)}</p><p class="text-sm capitalize mt-2"><strong class="text-yellow-400">Diff:</strong> ${q.difficulty} | <strong class="text-cyan-400">Cat:</strong> ${q.category}</p></div><div class="flex items-center space-x-4 self-end sm:self-center"><div class="flex space-x-2"><button onclick="showQuestionModal(${index})" class="px-3 py-1 bg-yellow-500 text-black rounded text-sm font-semibold">Edit</button><button onclick="deleteQuestion(${index})" class="px-3 py-1 bg-red-600 rounded text-sm font-semibold">Delete</button></div><label class="toggle-switch flex-shrink-0"><input type="checkbox" ${q.isActive ? 'checked' : ''} onchange="toggleQuestionActive(${index})"><span class="slider"></span></label></div>`;
         list.appendChild(div);
       });
@@ -372,9 +401,9 @@
           theme: document.getElementById('themeInput').value, font: document.getElementById('fontInput').value, animation: document.getElementById('animationInput').value,
           background: { type: document.getElementById('bgChoice').value, imageUrl: bgImageDataUrl, blur: parseInt(document.getElementById('bgBlurInput').value) }, sounds: soundDataUrls,
           prizeTiers: {
-              tier1: { name: document.getElementById('prizetier1Name').value, time: parseFloat(document.getElementById('prizetier1Time').value), hard: parseInt(document.getElementById('prizetier1Hard').value) },
-              tier2: { name: document.getElementById('prizetier2Name').value, time: parseFloat(document.getElementById('prizetier2Time').value) },
-              tier3: { name: document.getElementById('prizetier3Name').value }
+              tier1: { name: document.getElementById('prizeTier1Name') ? document.getElementById('prizeTier1Name').value : 'Math God', time: parseFloat(document.getElementById('prizeTier1Time') ? document.getElementById('prizeTier1Time').value : 10), hard: parseInt(document.getElementById('prizeTier1Hard') ? document.getElementById('prizeTier1Hard').value : 1) },
+              tier2: { name: document.getElementById('prizeTier2Name') ? document.getElementById('prizeTier2Name').value : 'Math Expert', time: parseFloat(document.getElementById('prizeTier2Time') ? document.getElementById('prizeTier2Time').value : 20) },
+              tier3: { name: document.getElementById('prizeTier3Name') ? document.getElementById('prizeTier3Name').value : 'Math Champion' }
           }
       };
       localStorage.setItem("quizApp_settings", JSON.stringify(settings));
@@ -385,6 +414,27 @@
       const indicator = document.getElementById('save-indicator'); indicator.querySelector('span').textContent = "All changes saved!";
       indicator.classList.remove('opacity-0'); setTimeout(() => indicator.classList.add('opacity-0'), 2500);
     }
+    
+    // --- THE IMPORTANT GITHUB EXPORT FUNCTION ---
+    function exportForGitHub() {
+        // 1. Gather all data
+        const settings = JSON.parse(localStorage.getItem("quizApp_settings")) || defaultSettings;
+        const timePerQ = localStorage.getItem("quizApp_timePerQ") || "30";
+        
+        // 2. Construct the object expected by index.html
+        const data = {
+            settings: settings,
+            timePerQ: timePerQ,
+            questions: questions
+        };
+
+        // 3. Download as data.json
+        const a = document.createElement("a"); 
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2)); 
+        a.download = "data.json"; 
+        a.click();
+    }
+
     function saveQuestion() {
         const qData = {
             question:     { en: document.getElementById('modalQuestion_en').value.trim(), si: document.getElementById('modalQuestion_si').value.trim() },
@@ -433,7 +483,7 @@
     }
     function deleteQuestion(index) { if (confirm("Delete this question?")) { questions.splice(index, 1); renderQuestions(); updateDashboardStats(); renderDashboardCharts(); } }
     function deleteUser(key) { if(confirm(`Delete user: ${users[key].name}?`)) { delete users[key]; renderUserData(); updateDashboardStats(); } }
-    function clearAllUsers() { if(confirm("DANGER! Delete ALL user profiles?")) { users = {}; localStorage.removeItem("quizApp_users"); localStorage.removeItem("quizApp_liveUsers"); renderUserData(); updateDashboardStats(); } }
+    function clearAllUsers() { if(confirm("DANGER! Delete ALL user profiles?")) { users = {}; localStorage.removeItem("quizApp_users"); renderUserData(); updateDashboardStats(); } }
     function toggleQuestionActive(index) { questions[index].isActive = !questions[index].isActive; renderQuestions(); updateDashboardStats(); }
 
     // --- FILTERS ---
@@ -495,6 +545,7 @@
         reader.onload = (ev) => {
             const lines = ev.target.result.split(/\r\n|\n/).slice(1);
             const newQs = lines.filter(Boolean).map((line, i) => {
+                // Improved regex to handle commas inside quotes
                 const data = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(d => d.replace(/^"|"$/g, '').replace(/""/g, '"'));
                 return {
                     id: (questions.length ? Math.max(...questions.map(q=>q.id)) : 0) + i + 1,
@@ -531,34 +582,21 @@
     document.addEventListener('DOMContentLoaded', () => { document.getElementById("passwordInput").addEventListener('keypress', (e) => { if (e.key === 'Enter') authenticate(); }); });
   </script>
   
-  <!-- IMPROVEMENT: Footer layout is now more responsive and centered. -->
   <footer class="glassmorphism-glow mt-8 py-6 text-center text-gray-200">
     <div class="max-w-7xl mx-auto px-4">
       <p class="text-sm drop-shadow-md mb-2">
         Developed by <span class="font-semibold text-white">Sadeepa Lakshan</span>
       </p>
-      
       <div class="flex justify-center space-x-6 mb-3">
-        <a href="https://github.com/sadeepas" target="_blank" class="hover:text-white transition-colors duration-300">
-          <i class="fab fa-github text-xl"></i>
-        </a>
-        <a href="https://www.linkedin.com/in/sadeepa-lakshan/" target="_blank" class="hover:text-white transition-colors duration-300">
-          <i class="fab fa-linkedin text-xl"></i>
-        </a>
-        <a href="mailto:sadeepapemasiri2@gmai.com" class="hover:text-white transition-colors duration-300">
-          <i class="fas fa-envelope text-xl"></i>
-        </a>
+        <a href="https://github.com/sadeepas" target="_blank" class="hover:text-white transition-colors duration-300"><i class="fab fa-github text-xl"></i></a>
+        <a href="https://www.linkedin.com/in/sadeepa-lakshan/" target="_blank" class="hover:text-white transition-colors duration-300"><i class="fab fa-linkedin text-xl"></i></a>
+        <a href="mailto:sadeepapemasiri2@gmai.com" class="hover:text-white transition-colors duration-300"><i class="fas fa-envelope text-xl"></i></a>
       </div>
-    
-      <p class="text-xs text-gray-300 drop-shadow-sm">
-        © <span id="year"></span> All Rights Reserved
-      </p>
+      <p class="text-xs text-gray-300 drop-shadow-sm">© <span id="year"></span> All Rights Reserved</p>
     </div>
   </footer>
 
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 
 </body>
 </html>
