@@ -461,7 +461,11 @@
                 short_description: "A unique physical-digital game. Spin a real-world wheel to get a number, which starts a timed, hands-on puzzle challenge.",
                 long_description: "MindMesh bridges the gap between physical and digital gameplay. The experience begins by spinning a custom-built wheel, which generates a number. This number is input into the web application, triggering a unique, timed puzzle challenge that requires logical thinking and quick reflexes to solve. It's an experiment in interactive, multi-modal entertainment.",
                 image: "puzzel_game.webp",
-                url: "puzzel.html",
+                /* UPDATED: Object with both PC and Mobile links */
+                url: {
+                    pc: "puzzelpc.html",
+                    mobile: "puzzelmobile.html"
+                },
                 tags: ["Game", "Puzzle", "Interactive"]
             },
             {
@@ -583,8 +587,30 @@
                 const project = projects[projectIndex];
                 
                 let buttonHtml = '';
-                if (project.title === "Math Quiz Application" && typeof project.url === 'object') {
-                    // Specific button layout for Math Quiz App with dropdown
+                
+                // UPDATED LOGIC: Handle dropdowns for both Puzzle and Math Quiz
+                if (typeof project.url === 'object') {
+                    
+                    let dropdownItems = '';
+                    let downloadUrl = '#'; 
+
+                    // Logic for MindMesh Puzzle Game
+                    if (project.title === "MindMesh Puzzle Game") {
+                        dropdownItems = `
+                            <a href="${project.url.mobile}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Mobile Version</a>
+                            <a href="${project.url.pc}" target="_blank" rel="noopener noreferrer" class="dropdown-item">PC Version</a>
+                        `;
+                        downloadUrl = project.url.pc; // Default download to PC version
+                    } 
+                    // Logic for Math Quiz
+                    else {
+                        dropdownItems = `
+                            <a href="${project.url.main}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Go to Main App</a>
+                            <a href="${project.url.admin}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Admin Panel</a>
+                        `;
+                        downloadUrl = project.url.main; // Default download to Main App
+                    }
+
                     buttonHtml = `
                         <div class="dropdown-container">
                             <button type="button" class="modal-btn modal-btn-primary dropdown-toggle">
@@ -592,16 +618,15 @@
                                 <svg class="w-5 h-5 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                             <div class="dropdown-menu card-noise">
-                                <a href="${project.url.main}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Go to Main App</a>
-                                <a href="${project.url.admin}" target="_blank" rel="noopener noreferrer" class="dropdown-item">Admin Panel</a>
+                                ${dropdownItems}
                             </div>
                         </div>
-                        <a href="${project.url.main}" download class="modal-btn modal-btn-secondary">
+                        <a href="${downloadUrl}" download class="modal-btn modal-btn-secondary">
                             Download
                         </a>
                     `;
                 } else {
-                    // Standard button layout for other projects
+                    // Standard button layout for single link projects
                     buttonHtml = `
                         <a href="${project.url}" target="_blank" rel="noopener noreferrer" class="modal-btn modal-btn-primary">
                             Go to Website
@@ -636,7 +661,7 @@
                     const toggleButton = dropdownContainer.querySelector('.dropdown-toggle');
                     const dropdownMenu = dropdownContainer.querySelector('.dropdown-menu');
                     toggleButton.addEventListener('click', (event) => {
-                        event.stopPropagation(); // Prevent the window click listener from closing it immediately
+                        event.stopPropagation(); 
                         dropdownContainer.classList.toggle('active');
                         dropdownMenu.classList.toggle('show');
                     });
