@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#4f46e5">
+    <title>MindMesh Pro - Ultimate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="puzzelico.ico">
+
+<style>
+    :root {
+        --wheel-size: clamp(280px, 90vw, 550px);
+        --brand-color: #4f46e5;
+        --brand-color-light: #6366f1;
+        --safe-bottom: env(safe-area-inset-bottom, 20px);
+        --safe-top: env(safe-area-inset-top, 20px);
+    }
+
+    .theme-indigo { --brand-color: #4f46e5; --brand-color-light: #6366f1; }
+    .theme-teal { --brand-color: #0d9488; --brand-color-light: #14b8a6; }
+    .theme-rose { --brand-color: #e11d48; --brand-color-light: #f43f5e; }
+    .theme-amber { --brand-color: #d97706; --brand-color-light: #f59e0b; }
+    .theme-dark { --brand-color: #334155; --brand-color-light: #475569; }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+        height: 100dvh; display: flex; flex-direction: column;
+        transition: background-color 0.3s;
+    }
+    
+    /* PROJECTOR MODE */
+    body.projector-mode header, 
+    body.projector-mode .bottom-nav,
+    body.projector-mode .projector-hide { display: none !important; }
+    body.projector-mode { justify-content: center; background: #0f172a; }
+    body.projector-mode .wheel-container { border-color: #1e293b; background: #1e293b; }
+    body.projector-mode .wheel-text { font-size: 1.5em !important; }
+
+    /* LOADER */
+    #loader {
+        position: fixed; inset: 0; background: white; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity 0.5s ease;
+    }
+    .spinner {
+        width: 40px; height: 40px; border: 4px solid #e2e8f0;
+        border-top-color: var(--brand-color); border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* WHEEL */
+    .wheel-wrapper {
+        position: relative; width: var(--wheel-size); height: var(--wheel-size);
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2)); margin-top: 2rem;
+        transition: transform 0.3s;
+    }
+    .wheel-container {
+        width: 100%; height: 100%; border-radius: 50%; border: 8px solid white;
+        background: #e2e8f0; overflow: hidden; position: relative;
+        transition: transform 0s;
+    }
+    .wheel-label {
+        position: absolute; top: 50%; left: 50%;
+        transform-origin: 0 0; 
+        display: flex; align-items: center; justify-content: flex-end;
+        width: 50%; height: 0px; pointer-events: none;
+    }
+    .wheel-text {
+        color: white; font-weight: 800;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        margin-right: 30px; white-space: nowrap;
+    }
+
+    .wheel-pointer {
+        position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
+        width: 56px; height: 70px; background: linear-gradient(to bottom, var(--brand-color-light), var(--brand-color));
+        clip-path: polygon(50% 100%, 0 0, 100% 0); z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+    .spin-btn {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 90px; height: 90px; background: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 900; color: var(--brand-color); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border: 6px solid #f1f5f9; z-index: 30; transition: transform 0.1s, width 0.2s, height 0.2s; font-size: 1.2rem;
+        text-transform: uppercase; letter-spacing: 1px;
+    }
+    .spin-btn:active { transform: translate(-50%, -50%) scale(0.92); }
+    .spin-btn:disabled { opacity: 0.9; cursor: not-allowed; background: #f8fafc; color: #cbd5e1; transform: translate(-50%, -50%) scale(0.9); }
+
+    /* NAVIGATION */
+    .bottom-nav {
+        position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(20px); border-top: 1px solid #e2e8f0;
+        padding-bottom: var(--safe-bottom); height: calc(72px + var(--safe-bottom));
+        display: flex; justify-content: space-around; z-index: 50;
+    }
+    .nav-item {
+        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: #94a3b8; background: none; border: none; padding-top: 6px; transition: all 0.2s;
+    }
+    .nav-item.active { color: var(--brand-color); transform: translateY(-4px); }
+    .nav-item.active svg { filter: drop-shadow(0 4px 6px rgba(var(--brand-color), 0.3)); }
+    .nav-item svg { width: 26px; height: 26px; margin-bottom: 3px; transition: 0.2s; }
+    .nav-item span { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
+
+    /* MODALS */
+    dialog { width: 100%; height: 100%; max-width: 100%; max-height: 100%; background: transparent; border: none; padding: 0; margin: 0; }
+    dialog[open] { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    dialog::backdrop { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); }
+    @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    
+    .sheet-container {
+        position: absolute; bottom: 0; left: 0; right: 0; background: #f8fafc;
+        border-radius: 28px 28px 0 0; height: 94vh; display: flex; flex-direction: column;
+        box-shadow: 0 -10px 50px rgba(0,0,0,0.15); overflow: hidden;
+    }
+    .sheet-header { padding: 20px 24px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .sheet-content { padding: 20px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
+    .sheet-footer { padding: 16px 24px; background: white; border-top: 1px solid #f1f5f9; padding-bottom: max(16px, var(--safe-bottom)); flex-shrink: 0; }
+
+    /* COMMON UI */
+    .btn { padding: 14px; border-radius: 16px; font-weight: 600; text-align: center; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; font-size: 15px; }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--brand-color); color: white; box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4); }
+    .btn-primary:hover { filter: brightness(110%); }
+    .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+    .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    
+    .input-field { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #cbd5e1; background: white; font-size: 16px; transition: border 0.2s, box-shadow 0.2s; }
+    .input-field:focus { outline: none; border-color: var(--brand-color); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+    
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
+    
+    /* TOAST */
+    .toast {
+        position: fixed; top: var(--safe-top); left: 50%; transform: translateX(-50%) translateY(-200%);
+        background: #1e293b; color: white; padding: 14px 28px; border-radius: 50px;
+        display: flex; align-items: center; gap: 12px; z-index: 100;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 15px 30px rgba(0,0,0,0.25); border: 1px solid #334155;
+    }
+    .toast.show { transform: translateX(-50%) translateY(20px); }
+
+    /* TOGGLES & RANKS */
+    .toggle-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 8px; }
+    .toggle-checkbox { display: none; }
+    .toggle-label { width: 56px; height: 32px; background: #cbd5e1; border-radius: 50px; position: relative; transition: 0.3s; cursor: pointer; }
+    .toggle-label::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .toggle-checkbox:checked + .toggle-label { background: var(--brand-color); }
+    .toggle-checkbox:checked + .toggle-label::after { transform: translateX(24px); }
+
+    .rank-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; flex-shrink: 0; }
+    .rank-1 { background: linear-gradient(135deg, #fbbf24, #d97706); box-shadow: 0 4px 8px rgba(251, 191, 36, 0.4); border: 2px solid white; }
+    .rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); border: 2px solid white; }
+    .rank-3 { background: linear-gradient(135deg, #d97706, #92400e); border: 2px solid white; }
+    .rank-other { background: #f1f5f9; color: #94a3b8; font-size: 12px; }
+
+    .tab-group { display: flex; background: #e2e8f0; padding: 4px; border-radius: 14px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 700; color: #64748b; border-radius: 10px; transition: 0.2s; }
+    .tab-btn.active { background: white; color: var(--brand-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+    .hidden { display: none !important; }
+    
+    /* ANIMATIONS */
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    .floating { animation: float 3s ease-in-out infinite; }
+</style>
+</head>
+<body class="theme-indigo">
+
+<!-- LOADING SCREEN -->
+<div id="loader">
+    <div class="spinner mb-4"></div>
+    <h2 class="text-2xl font-black text-slate-800 tracking-tight">MindMesh<span class="text-indigo-600">Pro</span></h2>
+    <p class="text-sm text-slate-400 font-medium mt-2">Ultimate Edition</p>
+</div>
+
+<!-- MAIN VIEW -->
+<main class="flex-grow flex flex-col items-center justify-center w-full relative pb-24 overflow-hidden">
+    <header class="absolute top-8 w-full text-center px-4 z-10 transition-opacity duration-300">
+        <h1 class="text-4xl font-black text-slate-800 tracking-tight drop-shadow-sm">MindMesh</h1>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-75">Classroom OS</p>
+        <button id="proj-btn" class="absolute top-0 right-4 p-2 bg-white/80 backdrop-blur rounded-full shadow-sm border border-slate-200 text-slate-400 hover:text-indigo-600 transition">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+        </button>
+    </header>
+
+    <div class="wheel-wrapper">
+        <div class="wheel-pointer"></div>
+        <div id="wheel-container" class="wheel-container shadow-inner"></div>
+        <button id="spin-button" class="spin-btn">SPIN</button>
+    </div>
+</main>
+
+<!-- NAVIGATION -->
+<nav class="bottom-nav">
+    <button class="nav-item active" data-action="closeModal">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>Home</span>
+    </button>
+    <button class="nav-item" data-action="openItems">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span>Items</span>
+    </button>
+    <button class="nav-item" data-action="openRank">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span>Rank</span>
+    </button>
+    <button class="nav-item" data-action="openUsers">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197m0 0A5 5 0 019 10a5 5 0 01-1.256-3.837M15 21a6 6 0 00-9-5.197"/></svg>
+        <span>Users</span>
+    </button>
+    <button class="nav-item" data-action="openSettings">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span>Settings</span>
+    </button>
+</nav>
+
+<!-- MODAL -->
+<dialog id="main-modal"></dialog>
+
+<!-- TOAST -->
+<div id="toast" class="toast"><span id="toast-icon" class="text-xl"></span><span id="toast-msg" class="font-bold text-sm tracking-wide"></span></div>
+
+<!-- CONFETTI -->
+<canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-[60]"></canvas>
+
+<!-- AUDIO -->
+<audio id="sound-click" src="https://cdn.jsdelivr.net/gh/sadeepas/mindmesh@main/ui-click.mp3" preload="auto"></audio>
+<audio id="sound-spin" src="https://cdn.jsdelivr.net/gh/sadeepas/mindmesh@main/spining%20wheel%20sound.mp3" loop preload="auto"></audio>
+<audio id="sound-win" src="https://cdn.jsdelivr.net/gh/sadeepas/mindmesh@main/win.mp3" preload="auto"></audio>
+
+<script>
+/**
+ * MindMesh Mobile - Ultimate Edition
+ * Includes Backup/Restore, Projector Mode, Team Rankings, and Enhanced Physics.
+ */
+const DB_CONFIG = { name: 'MindMeshDB_Pro', version: 3, stores: ['entries', 'users', 'history', 'settings'] };
+
+class DBService {
+    constructor() { this.db = null; }
+    async init() {
+        return new Promise((res, rej) => {
+            const req = indexedDB.open(DB_CONFIG.name, DB_CONFIG.version);
+            req.onerror = e => rej(e);
+            req.onsuccess = e => { this.db = e.target.result; res(); };
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                DB_CONFIG.stores.forEach(s => !db.objectStoreNames.contains(s) && db.createObjectStore(s, { keyPath: 'id', autoIncrement: true }));
+            };
+        });
+    }
+    async getAll(store) { return new Promise((res) => { const r = this.db.transaction(store, 'readonly').objectStore(store).getAll(); r.onsuccess = () => res(r.result); }); }
+    async put(store, item) { return new Promise((res) => { const r = this.db.transaction(store, 'readwrite').objectStore(store).put(item); r.onsuccess = () => res(r.result); }); }
+    async delete(store, id) { return new Promise((res) => { const r = this.db.transaction(store, 'readwrite').objectStore(store).delete(id); r.onsuccess = () => res(); }); }
+    async clear(store) { return new Promise((res) => { const r = this.db.transaction(store, 'readwrite').objectStore(store).clear(); r.onsuccess = () => res(); }); }
+    
+    // New: Bulk put for restore
+    async bulkPut(store, items) {
+        return new Promise((res, rej) => {
+            const tx = this.db.transaction(store, 'readwrite');
+            const s = tx.objectStore(store);
+            items.forEach(i => s.put(i));
+            tx.oncomplete = () => res();
+            tx.onerror = () => rej();
+        });
+    }
+}
+
+class App {
+    constructor() {
+        this.db = new DBService();
+        this.entries = []; this.users = []; this.history = [];
+        this.settings = { sounds: true, confetti: true, spinDuration: 8000, theme: 'indigo' };
+        this.isSpinning = false; this.currentRotation = 0;
+        this.els = {
+            wheel: document.getElementById('wheel-container'),
+            spinBtn: document.getElementById('spin-button'),
+            modal: document.getElementById('main-modal'),
+            navItems: document.querySelectorAll('.nav-item'),
+            sounds: { click: document.getElementById('sound-click'), spin: document.getElementById('sound-spin'), win: document.getElementById('sound-win') },
+            loader: document.getElementById('loader')
+        };
+        
+        // Event Delegation
+        document.body.addEventListener('click', e => {
+            const t = e.target.closest('[data-action]');
+            if(t) { e.preventDefault(); this.handleAction(t.dataset.action, t.dataset); }
+        });
+
+        // Projector Mode Toggle
+        document.getElementById('proj-btn').addEventListener('click', () => {
+            document.body.classList.toggle('projector-mode');
+            this.toast(document.body.classList.contains('projector-mode') ? 'Projector Mode ON' : 'Projector Mode OFF', 'info');
+        });
+
+        this.els.spinBtn.addEventListener('click', () => this.spinWheel());
+        
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if(e.code === 'Space' && !this.els.modal.open && !this.isSpinning) { e.preventDefault(); this.spinWheel(); }
+            if(e.code === 'Escape' && this.els.modal.open) { this.els.modal.close(); }
+        });
+    }
+
+    async init() {
+        await this.db.init();
+        await this.loadData();
+        this.renderWheel();
+        this.applyTheme();
+        
+        // Hide Loader
+        setTimeout(() => {
+            this.els.loader.style.opacity = '0';
+            setTimeout(() => this.els.loader.remove(), 500);
+        }, 800);
+    }
+
+    async loadData() {
+        const [e, u, h, s] = await Promise.all([this.db.getAll('entries'), this.db.getAll('users'), this.db.getAll('history'), this.db.getAll('settings')]);
+        if(s && s.length > 0) this.settings = {...this.settings, ...s[0]};
+        
+        if(e.length === 0) {
+            const def = Array.from({length: 10}, (_,i)=>({id: Date.now()+i, number: i+1, enabled: true, timer: 60, weight: 1, image: null, description: `Item #${i+1}`, removeOnWin: false, removed: false}));
+            await Promise.all(def.map(d => this.db.put('entries', d)));
+            this.entries = def;
+        } else this.entries = e;
+        this.users = u.sort((a,b) => a.name.localeCompare(b.name));
+        this.history = h;
+    }
+
+    renderWheel() {
+        const active = this.entries.filter(x => x.enabled && !x.removed);
+        this.els.wheel.innerHTML = '';
+        
+        if(active.length < 2) {
+            this.els.wheel.innerHTML = '<div class="flex h-full flex-col items-center justify-center text-slate-400 font-bold p-8 text-center bg-slate-50"><p class="text-lg text-slate-600">Wheel Empty</p><span class="text-xs font-normal mt-2">Go to Items Tab</span><button data-action="openItems" class="mt-4 px-4 py-2 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold">Manage Items</button></div>';
+            this.els.spinBtn.disabled = true; return;
+        }
+        this.els.spinBtn.disabled = this.isSpinning;
+        
+        const total = active.reduce((s,e) => s+(e.weight||1), 0);
+        let grad = '', ang = 0;
+        const palette = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
+
+        active.forEach((e,i) => {
+            const w = e.weight||1, arc = (w/total)*360;
+            // Generate vibrant color palette
+            const color = palette[i % palette.length];
+            grad += `${color} ${ang}deg ${ang+arc}deg, `;
+            
+            const lbl = document.createElement('div');
+            lbl.className = 'wheel-label';
+            const centerAngle = ang + (arc/2);
+            const fontSize = Math.max(12, 32 - (active.length * 0.8)); 
+            
+            lbl.style.transform = `rotate(${centerAngle}deg)`;
+            lbl.innerHTML = `<span class="wheel-text" style="font-size:${fontSize}px">${e.number}</span>`;
+            this.els.wheel.appendChild(lbl);
+            ang += arc;
+        });
+        this.els.wheel.style.background = `conic-gradient(${grad.slice(0,-2)})`;
+    }
+
+    spinWheel() {
+        if(this.isSpinning) return;
+        const active = this.entries.filter(x => x.enabled && !x.removed);
+        if(active.length < 2) return this.toast('Add more items', 'error');
+
+        this.isSpinning = true; this.els.spinBtn.disabled = true;
+        this.sound('click'); this.sound('spin', true);
+
+        // Weighted Random
+        const total = active.reduce((s,e)=>s+(e.weight||1),0);
+        let r = Math.random()*total, winner=active[0], acc=0;
+        for(let e of active) { acc+=(e.weight||1); if(r<=acc){ winner=e; break; } }
+
+        let start=0;
+        for(let e of active) { if(e.id===winner.id) break; start+=((e.weight||1)/total)*360; }
+        const arc = ((winner.weight||1)/total)*360;
+        
+        // Targeting calculation
+        const targetAngle = start + (arc/2); // Center of slice
+        const stopAt = 360 - targetAngle; // Adjust for CSS rotation
+        const rot = this.currentRotation + (360*8) + (stopAt - (this.currentRotation%360)); // 8 Full spins
+
+        this.els.wheel.style.transition = `transform ${this.settings.spinDuration}ms cubic-bezier(0.15, 0.85, 0.35, 1)`;
+        this.els.wheel.style.transform = `rotate(${rot}deg)`;
+        this.currentRotation = rot;
+
+        setTimeout(() => {
+            this.isSpinning = false; this.els.spinBtn.disabled = false;
+            this.stopSound('spin'); this.sound('win');
+            
+            if(winner.removeOnWin) { 
+                winner.removed=true; 
+                this.db.put('entries', winner); 
+            }
+            
+            if(this.settings.confetti) this.confetti();
+            this.openModal('result', winner);
+            
+            // Update wheel *after* modal closes usually, but here we update instant to show removal state
+            // We delay slightly so user sees the pointer on the winner
+            setTimeout(() => this.renderWheel(), 1000); 
+        }, this.settings.spinDuration);
+    }
+
+    handleAction(act, data) {
+        if(act==='closeModal') { this.els.modal.close(); this.updateNav('closeModal'); return; }
+        this.updateNav(act);
+        
+        const actions = {
+            openItems: () => this.viewItems(),
+            openRank: () => this.viewRank('user'),
+            rankSwitch: () => this.viewRank(data.type),
+            openUsers: () => this.viewUsers(),
+            openSettings: () => this.viewSettings(),
+            addItem: () => this.addNewItem(),
+            editItem: () => this.editItem(parseInt(data.id)),
+            saveItem: () => this.saveItem(parseInt(data.id)),
+            restoreItem: () => this.restoreItem(parseInt(data.id)),
+            resetRound: () => this.resetRound(),
+            editUser: () => this.editUser(data.id?parseInt(data.id):null),
+            saveUser: () => this.saveUser(data.id?parseInt(data.id):null),
+            delUser: () => this.delUser(parseInt(data.id)),
+            nukeUsers: () => this.nuke('users'),
+            bulkImportUsers: () => this.bulkImportModal(),
+            processImport: () => this.processImport(),
+            delHistory: () => this.delHistory(parseInt(data.id)),
+            nukeHistory: () => this.nuke('history'),
+            saveSettings: () => this.saveSettings(),
+            exportData: () => this.exportData(),
+            importData: () => this.importDataModal(),
+            processDataImport: () => this.processDataImport(),
+            exportCSV: () => this.exportCSV(data.type),
+            setupSolver: () => this.setupSolver(parseInt(data.id)),
+            startChallenge: () => this.startChallenge(parseInt(data.eid)),
+            endChallenge: () => this.endChallenge(parseInt(data.hid), data.status),
+            adjustTimer: () => this.adjustTimer(parseInt(data.sec)),
+            removeImage: () => { document.getElementById('img-prev').src=''; document.getElementById('img-prev').classList.add('hidden'); document.getElementById('inp-file').value=''; }
+        };
+
+        if(actions[act]) actions[act]();
+    }
+
+    updateNav(act) {
+        this.els.navItems.forEach(n => n.classList.remove('active'));
+        // Match partial string for ranking tab switch
+        const t = document.querySelector(`.nav-item[data-action="${act}"]`) 
+               || document.querySelector(`.nav-item[data-action="closeModal"]`);
+        if(t && !act.includes('rankSwitch')) t.classList.add('active');
+        else if(act.includes('rankSwitch')) document.querySelector(`.nav-item[data-action="openRank"]`).classList.add('active');
+    }
+
+    sheet(title, html, footer='') {
+        this.els.modal.innerHTML = `
+        <div class="sheet-container">
+            <div class="sheet-header"><h2 class="text-xl font-bold text-slate-800">${title}</h2><button onclick="document.getElementById('main-modal').close()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition text-slate-500">✕</button></div>
+            <div class="sheet-content">${html}</div>
+            ${footer?`<div class="sheet-footer">${footer}</div>`:''}
+        </div>`;
+        this.els.modal.showModal();
+    }
+
+    // --- VIEWS ---
+
+    viewItems() {
+        const addItemBtn = `
+        <button data-action="addItem" class="relative aspect-square rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50 flex flex-col items-center justify-center hover:bg-indigo-100 transition group">
+            <span class="text-4xl font-light text-indigo-500 mb-1 group-hover:scale-110 transition">+</span>
+            <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">Add New</span>
+        </button>`;
+
+        const list = this.entries.map(e => `
+            <button data-action="editItem" data-id="${e.id}" class="relative aspect-square rounded-xl border ${e.enabled?(e.removed?'bg-amber-50 border-amber-300':'bg-white border-slate-200'):'bg-slate-100 opacity-60'} flex flex-col items-center justify-center shadow-sm overflow-hidden transition hover:scale-[1.02]">
+                ${e.image ? `<img src="${e.image}" class="absolute inset-0 w-full h-full object-cover opacity-40">`:''}
+                <span class="z-10 text-2xl font-black text-slate-800 drop-shadow-sm">${e.number}</span>
+                ${e.weight>1?`<span class="absolute top-1 right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">x${e.weight}</span>`:''}
+                ${e.removed?`<span class="absolute bottom-2 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">REMOVED</span>`:''}
+            </button>`).join('');
+
+        const footer = `<button data-action="resetRound" class="btn btn-secondary text-indigo-600 border-indigo-200 bg-indigo-50">↺ Enable All Items (New Round)</button>`;
+        this.sheet('Wheel Items', `<div class="card-grid">${addItemBtn}${list}</div>`, footer);
+    }
+
+    async resetRound() {
+        if(!confirm('Start a new round? All removed items will be enabled.')) return;
+        this.entries.forEach(e => e.removed = false);
+        await Promise.all(this.entries.map(e => this.db.put('entries', e)));
+        this.renderWheel(); this.viewItems(); this.toast('Ready for new round!', 'success');
+    }
+
+    async addNewItem() {
+        const nextNum = this.entries.length > 0 ? Math.max(...this.entries.map(e => parseInt(e.number)||0)) + 1 : 1;
+        const newItem = {
+            id: Date.now(), number: nextNum, enabled: true, timer: 60, weight: 1,
+            image: null, description: `Item #${nextNum}`, removeOnWin: false, removed: false
+        };
+        await this.db.put('entries', newItem);
+        this.entries.push(newItem);
+        this.toast(`Item #${nextNum} Added`, 'success');
+        this.renderWheel(); this.viewItems();
+    }
+
+    viewRank(type='user') {
+        const scores = {}; 
+        this.history.forEach(h => { 
+            if(h.status === 'solved') {
+                if(type === 'user') scores[h.userId] = (scores[h.userId]||0) + 1;
+                else {
+                    const u = this.users.find(x=>x.id===h.userId);
+                    const s = u && u.school ? u.school.trim() : 'No Team';
+                    scores[s] = (scores[s]||0) + 1;
+                }
+            }
+        });
+
+        let ranking;
+        if(type === 'user') {
+            ranking = this.users.map(u => ({ ...u, score: scores[u.id] || 0 })).filter(u => u.status === 'active' || u.score > 0).sort((a,b) => b.score - a.score);
+        } else {
+            // Group by School
+            ranking = Object.keys(scores).map(k => ({ name: k, school: 'Team Score', score: scores[k] })).sort((a,b) => b.score - a.score);
+        }
+
+        const tabs = `
+        <div class="tab-group">
+            <button data-action="rankSwitch" data-type="user" class="tab-btn ${type==='user'?'active':''}">Students</button>
+            <button data-action="rankSwitch" data-type="school" class="tab-btn ${type==='school'?'active':''}">Teams / Schools</button>
+        </div>`;
+
+        const html = ranking.map((u, i) => {
+            let badge = 'rank-other';
+            if(i===0) badge = 'rank-1'; if(i===1) badge = 'rank-2'; if(i===2) badge = 'rank-3';
+            return `
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-3 flex items-center gap-4 transform transition hover:scale-[1.01]">
+                <div class="rank-badge ${badge}">${i+1}</div>
+                <div class="flex-grow">
+                    <div class="font-bold text-slate-800 text-lg">${u.name}</div>
+                    ${type==='user' ? `<div class="text-xs text-slate-500 font-medium">${u.school || 'No Team'}</div>` : ''}
+                </div>
+                <div class="text-right bg-slate-50 px-3 py-1 rounded-lg min-w-[60px]">
+                    <div class="text-xl font-black text-indigo-600">${u.score}</div>
+                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Wins</div>
+                </div>
+            </div>`;
+        }).join('') || '<div class="flex flex-col items-center justify-center h-64 text-slate-400"><p>No wins recorded yet.</p></div>';
+
+        this.sheet('Leaderboard', tabs + html);
+    }
+
+    viewUsers() {
+        const html = this.users.map(u => `
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-3 flex justify-between items-center">
+                <div>
+                    <div class="font-bold text-slate-800">${u.name}</div>
+                    <div class="text-xs text-slate-500 font-semibold">${u.school || 'No School'} <span class="font-normal text-slate-300 mx-1">•</span> <span class="${u.status==='active'?'text-green-600':'text-red-400'} font-bold uppercase text-[10px]">${u.status}</span></div>
+                </div>
+                <div class="flex gap-2"><button data-action="editUser" data-id="${u.id}" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">✎</button><button data-action="delUser" data-id="${u.id}" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">🗑</button></div>
+            </div>`).join('') || '<div class="text-center text-slate-400 mt-8">No users found.</div>';
+        
+        const foot = `
+        <div class="grid grid-cols-2 gap-3">
+            <button data-action="editUser" class="btn btn-primary col-span-2">Add Single User</button>
+            <button data-action="bulkImportUsers" class="btn btn-secondary text-xs">📂 Bulk Import</button>
+            ${this.users.length ? '<button data-action="nukeUsers" class="btn btn-danger text-xs">🗑 Delete All</button>' : ''}
+        </div>`;
+        this.sheet('Manage Users', html, foot);
+    }
+
+    bulkImportModal() {
+        const html = `
+        <div class="space-y-4">
+            <p class="text-sm text-slate-500">Paste a list of users below. Each line is a user.<br>Format: <b>Name, School</b> (School is optional)</p>
+            <textarea id="import-area" class="input-field font-mono text-sm h-64" placeholder="Alice, Blue Team&#10;Bob, Red Team&#10;Charlie"></textarea>
+        </div>`;
+        this.sheet('Bulk Import', html, `<button data-action="processImport" class="btn btn-primary">Import Users</button>`);
+    }
+
+    async processImport() {
+        const txt = document.getElementById('import-area').value;
+        if(!txt.trim()) return;
+        const lines = txt.split('\n');
+        let count = 0;
+        for(let line of lines) {
+            if(!line.trim()) continue;
+            const [name, school] = line.split(',');
+            if(name.trim()) {
+                await this.db.put('users', { id: Date.now()+count, name: name.trim(), school: school?school.trim():'', status: 'active' });
+                count++;
+            }
+        }
+        await this.loadData();
+        this.toast(`Imported ${count} users`, 'success');
+        this.viewUsers();
+    }
+
+    viewSettings() {
+        const html = `
+        <form id="settings-form" class="space-y-5">
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <div class="toggle-wrapper border-0 p-0 mb-4"><span>Sound Effects</span><input type="checkbox" id="s-sound" class="toggle-checkbox" ${this.settings.sounds?'checked':''}><label for="s-sound" class="toggle-label"></label></div>
+                <div class="toggle-wrapper border-0 p-0"><span>Confetti Celebration</span><input type="checkbox" id="s-conf" class="toggle-checkbox" ${this.settings.confetti?'checked':''}><label for="s-conf" class="toggle-label"></label></div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <label class="text-xs font-bold text-slate-500 mb-2 block">Color Theme</label>
+                <select id="s-theme" class="input-field">
+                    <option value="indigo" ${this.settings.theme=='indigo'?'selected':''}>Indigo (Default)</option>
+                    <option value="teal" ${this.settings.theme=='teal'?'selected':''}>Teal</option>
+                    <option value="rose" ${this.settings.theme=='rose'?'selected':''}>Rose</option>
+                    <option value="amber" ${this.settings.theme=='amber'?'selected':''}>Amber</option>
+                    <option value="dark" ${this.settings.theme=='dark'?'selected':''}>Dark Slate</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button data-action="exportCSV" data-type="rank" class="btn btn-secondary text-xs">Export Rank CSV</button>
+                <button data-action="exportCSV" data-type="history" class="btn btn-secondary text-xs">Export History CSV</button>
+            </div>
+            
+            <hr class="border-slate-200">
+            
+            <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                <h3 class="text-sm font-bold text-indigo-900 mb-2">Data Management</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button data-action="exportData" class="btn bg-white text-indigo-600 text-xs shadow-sm">Backup (JSON)</button>
+                    <button data-action="importData" class="btn bg-white text-indigo-600 text-xs shadow-sm">Restore (JSON)</button>
+                </div>
+            </div>
+            
+            <button data-action="nukeHistory" class="btn btn-danger text-xs">Clear History Log</button>
+        </form>`;
+        this.sheet('Settings', html, `<button data-action="saveSettings" class="btn btn-primary">Save Changes</button>`);
+    }
+
+    // --- DATA PORTABILITY ---
+    async exportData() {
+        const data = {
+            entries: this.entries,
+            users: this.users,
+            history: this.history,
+            settings: this.settings,
+            timestamp: Date.now()
+        };
+        const b = new Blob([JSON.stringify(data)], {type:'application/json'});
+        const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`MindMesh_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+        this.toast('Backup Downloaded', 'success');
+    }
+
+    importDataModal() {
+        const html = `
+        <div class="p-4 text-center">
+            <p class="text-sm text-slate-500 mb-4">Upload a JSON backup file. <br><b class="text-red-500">Warning: This will overwrite current data.</b></p>
+            <input type="file" id="restore-file" accept=".json" class="input-field mb-4">
+        </div>`;
+        this.sheet('Restore Data', html, `<button data-action="processDataImport" class="btn btn-primary">Restore</button>`);
+    }
+
+    async processDataImport() {
+        const f = document.getElementById('restore-file').files[0];
+        if(!f) return this.toast('No file selected', 'error');
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(!data.entries || !data.users) throw new Error('Invalid Format');
+                
+                await this.db.clear('entries'); await this.db.bulkPut('entries', data.entries);
+                await this.db.clear('users'); await this.db.bulkPut('users', data.users);
+                await this.db.clear('history'); await this.db.bulkPut('history', data.history||[]);
+                await this.db.clear('settings'); if(data.settings) await this.db.put('settings', data.settings);
+                
+                await this.init(); // Reload app state
+                this.els.modal.close();
+                this.toast('Data Restored Successfully', 'success');
+            } catch(err) {
+                this.toast('Restore Failed: ' + err.message, 'error');
+            }
+        };
+        reader.readAsText(f);
+    }
+
+    // --- EDITORS ---
+    editItem(id) {
+        const e = this.entries.find(x=>x.id===id);
+        const html = `
+        <form id="f-item" class="space-y-4">
+            <div class="flex justify-between">
+                <div class="flex-1 mr-2"><label class="text-xs font-bold text-slate-500">Number / Label</label><input type="text" id="i-num" class="input-field font-black text-lg" value="${e.number}"></div>
+                <div class="flex items-end pb-2"><div class="toggle-wrapper m-0 py-2 px-3"><span class="text-sm mr-2">Enabled</span><input type="checkbox" id="i-en" class="toggle-checkbox" ${e.enabled?'checked':''}><label for="i-en" class="toggle-label"></label></div></div>
+            </div>
+            <div class="flex gap-3">
+                <div class="flex-1"><label class="text-xs font-bold text-slate-500">Timer (sec)</label><input type="number" id="i-time" class="input-field" value="${e.timer}"></div>
+                <div class="flex-1"><label class="text-xs font-bold text-slate-500">Probability Weight</label><input type="number" id="i-w" class="input-field" value="${e.weight}"></div>
+            </div>
+            <div><label class="text-xs font-bold text-slate-500">Challenge Description</label><textarea id="i-desc" class="input-field" rows="3">${e.description}</textarea></div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200"><label class="text-xs font-bold text-slate-500 block mb-2">Image (Optional)</label><input type="file" id="inp-file" accept="image/*" class="hidden"><div class="flex items-center gap-4"><img id="img-prev" src="${e.image||''}" class="w-16 h-16 bg-slate-100 rounded-lg object-cover border ${e.image?'':'hidden'}"><button type="button" onclick="document.getElementById('inp-file').click()" class="btn-secondary text-xs px-3 py-2 rounded-lg">Choose Photo</button><button data-action="removeImage" class="text-red-500 text-xs font-bold" ${e.image?'':'hidden'}>Remove</button></div></div>
+            <div class="toggle-wrapper bg-amber-50 border-amber-200"><span class="text-amber-800 font-semibold text-sm">Remove item after winning</span><input type="checkbox" id="i-rem" class="toggle-checkbox" ${e.removeOnWin?'checked':''}><label for="i-rem" class="toggle-label"></label></div>
+            ${e.removed?`<button data-action="restoreItem" data-id="${id}" class="btn btn-secondary">Restore to Wheel (Is currently removed)</button>`:''}
+        </form>`;
+        this.sheet(`Edit Item`, html, `<button data-action="saveItem" data-id="${id}" class="btn btn-primary">Save Changes</button>`);
+        document.getElementById('inp-file').onchange = e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=v=>{document.getElementById('img-prev').src=v.target.result;document.getElementById('img-prev').classList.remove('hidden');}; r.readAsDataURL(f); } };
+    }
+
+    editUser(id) {
+        const u = id?this.users.find(x=>x.id===id):{name:'',school:'',status:'active'};
+        const html = `
+        <form class="space-y-4">
+            <div><label class="text-xs font-bold text-slate-500">Full Name</label><input id="u-name" class="input-field font-bold" value="${u.name}"></div>
+            <div><label class="text-xs font-bold text-indigo-600 uppercase">School / Team Name</label><input id="u-school" class="input-field border-indigo-200" value="${u.school}" placeholder="e.g. Red Dragons"></div>
+            <div class="toggle-wrapper"><span>Active Participant</span><input type="checkbox" id="u-active" class="toggle-checkbox" ${u.status==='active'?'checked':''}><label for="u-active" class="toggle-label"></label></div>
+        </form>`;
+        this.sheet(id?'Edit User':'Add User', html, `<button data-action="saveUser" ${id?`data-id="${id}"`:''} class="btn btn-primary">Save User</button>`);
+    }
+
+    // --- LOGIC HANDLERS ---
+    async saveItem(id) {
+        const e = this.entries.find(x=>x.id===id);
+        e.number = document.getElementById('i-num').value;
+        e.enabled = document.getElementById('i-en').checked;
+        e.timer = parseInt(document.getElementById('i-time').value)||60;
+        e.weight = parseInt(document.getElementById('i-w').value)||1;
+        e.description = document.getElementById('i-desc').value;
+        e.removeOnWin = document.getElementById('i-rem').checked;
+        const img = document.getElementById('img-prev');
+        if(img.src && !img.classList.contains('hidden') && img.src.startsWith('data:')) e.image = img.src;
+        else if(img.classList.contains('hidden')) e.image = null;
+        await this.db.put('entries', e); this.toast('Item Saved', 'success'); this.viewItems(); this.renderWheel();
+    }
+
+    async restoreItem(id) {
+        const e = this.entries.find(x=>x.id===id); e.removed=false;
+        await this.db.put('entries', e); this.toast('Restored', 'success'); this.els.modal.close(); this.renderWheel();
+    }
+
+    async saveUser(id) {
+        const name = document.getElementById('u-name').value;
+        const school = document.getElementById('u-school').value;
+        if(!name) return this.toast('Name required', 'error');
+        const u = id?this.users.find(x=>x.id===id):{id:Date.now()};
+        u.name=name; u.school=school; u.status=document.getElementById('u-active').checked?'active':'inactive';
+        await this.db.put('users', u); await this.loadData(); this.toast('User Saved', 'success'); this.viewUsers();
+    }
+
+    async delUser(id) { if(confirm('Delete user?')) { await this.db.delete('users', id); await this.loadData(); this.viewUsers(); } }
+    async nuke(store) { if(confirm('Are you sure? This cannot be undone.')) { await this.db.clear(store); await this.loadData(); this.els.modal.close(); this.toast('Cleared', 'info'); } }
+    async delHistory(id) { await this.db.delete('history', id); await this.loadData(); this.viewHistory(); }
+
+    async saveSettings() {
+        this.settings = {
+            sounds: document.getElementById('s-sound').checked, confetti: document.getElementById('s-conf').checked,
+            theme: document.getElementById('s-theme').value, spinDuration: 8000
+        };
+        await this.db.put('settings', [this.settings]);
+        this.applyTheme(); this.els.modal.close(); this.toast('Settings Saved', 'success');
+    }
+
+    // --- GAMEPLAY ---
+    openModal(type, d) {
+        if(type==='result') {
+            const html = `
+            <div class="text-center p-4 flex flex-col h-full items-center justify-center">
+                <div class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 animate-[bounce_1s_infinite]">Winner</div>
+                ${d.image?`<img src="${d.image}" class="w-48 h-48 rounded-2xl object-cover shadow-2xl mb-6 border-4 border-white floating">`:`<div class="w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-7xl font-black text-white mb-6 shadow-xl floating">${d.number}</div>`}
+                <h2 class="text-6xl font-black text-slate-800 mb-2 tracking-tighter">#${d.number}</h2>
+                <p class="text-slate-600 bg-slate-50 p-4 rounded-xl mb-6 w-full text-lg font-medium leading-snug">${d.description}</p>
+                <button data-action="setupSolver" data-id="${d.id}" class="btn btn-primary mb-3 text-lg py-4 shadow-lg shadow-indigo-200">🚀 Start Challenge</button>
+            </div>`;
+            this.els.modal.innerHTML = `<div class="sheet-container h-[85vh] rounded-t-[40px]">${html}</div>`;
+            this.els.modal.showModal();
+        }
+    }
+
+    setupSolver(eid) {
+        const active = this.users.filter(u=>u.status==='active');
+        const opts = active.map(u=>`<option value="${u.id}">${u.name} (${u.school||'No Team'})</option>`).join('');
+        const html = `
+        <div class="space-y-5 pt-4">
+            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800 text-sm">
+                <strong>Who is taking this challenge?</strong><br>Select a student/team to track their score.
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Participant</label>
+                <select id="s-usr" class="input-field bg-white" onchange="document.getElementById('new-row').classList.toggle('hidden',this.value!=='new')">
+                    <option value="" disabled selected>Select User...</option>
+                    ${opts}
+                    <option value="new">+ Create New User</option>
+                </select>
+            </div>
+            <div id="new-row" class="hidden space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <input id="q-name" class="input-field" placeholder="Full Name">
+                <input id="q-school" class="input-field" placeholder="School / Team">
+            </div>
+        </div>`;
+        this.sheet('Start Challenge', html, `<button data-action="startChallenge" data-eid="${eid}" class="btn btn-primary">Begin Timer</button>`);
+    }
+
+    async startChallenge(eid) {
+        let uid = document.getElementById('s-usr').value;
+        if(!uid) return this.toast('Select User', 'error');
+        if(uid==='new') {
+            const n = document.getElementById('q-name').value, s = document.getElementById('q-school').value;
+            if(!n) return this.toast('Name required', 'error');
+            const u = {id:Date.now(), name:n, school:s, status:'active'};
+            await this.db.put('users', u); this.users.push(u); uid=u.id;
+        } else uid = parseInt(uid);
+        
+        const e = this.entries.find(x=>x.id===eid);
+        const h = {id:Date.now(), number:e.number, userId:uid, startedAt:new Date().toISOString(), status:'active', duration:e.timer};
+        await this.db.put('history', h); this.history.push(h);
+        
+        const u = this.users.find(x=>x.id===uid);
+        
+        // Fullscreen Timer UI
+        this.els.modal.innerHTML = `
+        <div class="flex flex-col h-full bg-slate-900 text-white absolute inset-0 z-50">
+            <!-- Header -->
+            <div class="p-6 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md">
+                <div>
+                    <div class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Challenger</div>
+                    <div class="font-black text-2xl">${u.name}</div>
+                    <div class="text-sm text-indigo-400 font-medium">${u.school||''}</div>
+                </div>
+                <div class="text-right">
+                    <div id="timer" class="font-mono text-6xl font-black text-yellow-400 tabular-nums tracking-tight drop-shadow-[0_0_15px_rgba(250,204,21,0.3)]"></div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-grow flex flex-col items-center justify-center p-6 overflow-y-auto text-center">
+                ${e.image?`<img src="${e.image}" class="max-w-full max-h-[35vh] object-contain mb-6 rounded-lg shadow-2xl">`:`<div class="text-[10rem] leading-none font-black text-slate-800 select-none">${e.number}</div>`}
+                <p class="text-slate-200 mt-4 bg-white/10 backdrop-blur p-6 rounded-2xl w-full max-w-2xl text-2xl font-medium leading-relaxed border border-white/10 shadow-inner">${e.description}</p>
+                
+                <!-- Live Controls -->
+                <div class="flex gap-4 mt-6 opacity-50 hover:opacity-100 transition">
+                    <button data-action="adjustTimer" data-sec="10" class="px-3 py-1 bg-slate-800 rounded text-xs font-bold">+10s</button>
+                    <button data-action="adjustTimer" data-sec="30" class="px-3 py-1 bg-slate-800 rounded text-xs font-bold">+30s</button>
+                    <button data-action="adjustTimer" data-sec="-10" class="px-3 py-1 bg-slate-800 rounded text-xs font-bold">-10s</button>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-6 grid grid-cols-2 gap-4 bg-slate-900/80 backdrop-blur">
+                <button data-action="endChallenge" data-hid="${h.id}" data-status="stopped" class="btn bg-slate-800 hover:bg-slate-700 text-white border-slate-700">Stop / Fail</button>
+                <button data-action="endChallenge" data-hid="${h.id}" data-status="solved" class="btn btn-primary bg-green-600 hover:bg-green-500 border-none shadow-[0_0_20px_rgba(22,163,74,0.4)]">Complete!</button>
+            </div>
+        </div>`;
+        
+        this.activeTime = h.duration;
+        const updateTimer = () => { 
+            const m = Math.floor(this.activeTime/60);
+            const s = (this.activeTime%60).toString().padStart(2,'0');
+            const el = document.getElementById('timer');
+            if(el) {
+                el.textContent = `${m}:${s}`;
+                if(this.activeTime <= 10) el.classList.add('text-red-500', 'animate-pulse');
+                else el.classList.remove('text-red-500', 'animate-pulse');
+            }
+        };
+        updateTimer();
+        this.activeTimerInterval = setInterval(() => {
+            this.activeTime--; updateTimer();
+            if(this.activeTime<=0) { clearInterval(this.activeTimerInterval); this.handleAction('endChallenge', {hid:h.id, status:'time_up'}); }
+        }, 1000);
+    }
+
+    adjustTimer(sec) {
+        this.activeTime += sec;
+        if(this.activeTime < 0) this.activeTime = 0;
+        const m = Math.floor(this.activeTime/60);
+        const s = (this.activeTime%60).toString().padStart(2,'0');
+        document.getElementById('timer').textContent = `${m}:${s}`;
+    }
+
+    async endChallenge(hid, status) {
+        clearInterval(this.activeTimerInterval);
+        const h = this.history.find(x=>x.id===hid); h.status=status;
+        await this.db.put('history', h);
+        this.els.modal.close();
+        if(status==='solved') { this.sound('win'); this.toast('Challenge Solved!', 'success'); if(this.settings.confetti) this.confetti(); }
+        else if(status==='time_up') { this.sound('click'); this.toast('Time Up!', 'error'); }
+        else this.toast('Stopped', 'info');
+    }
+
+    // --- UTILITIES ---
+    toast(msg, type) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-icon').innerText = type==='success'?'✅':(type==='error'?'⛔':'ℹ️');
+        document.getElementById('toast-msg').innerText = msg;
+        t.className = `toast show ${type==='error' ? 'border-red-500' : 'border-slate-700'}`;
+        setTimeout(()=>t.classList.remove('show'), 3000);
+    }
+    sound(key, loop) { if(this.settings.sounds) { const s=this.els.sounds[key]; s.currentTime=0; s.loop=loop; s.play().catch(()=>{}); } }
+    stopSound(key) { this.els.sounds[key].pause(); }
+    
+    applyTheme() { 
+        document.body.className = `theme-${this.settings.theme} ${document.body.classList.contains('projector-mode')?'projector-mode':''}`; 
+    }
+    
+    exportCSV(type) {
+        let csv='';
+        if(type==='rank') {
+            const scores = {}; this.history.forEach(h=>{ if(h.status==='solved') scores[h.userId]=(scores[h.userId]||0)+1; });
+            csv = 'Rank,Name,School,Solved\n' + this.users.map(u=>({ ...u, score:scores[u.id]||0})).sort((a,b)=>b.score-a.score).map((u,i)=>`${i+1},"${u.name}","${u.school||''}",${u.score}`).join('\n');
+        } else {
+            csv = 'Date,Item,User,School,Status\n' + this.history.map(h=>{ const u=this.users.find(x=>x.id===h.userId)||{name:'Unknown',school:''}; return `${new Date(h.startedAt).toISOString()},${h.number},"${u.name}","${u.school}",${h.status}`; }).join('\n');
+        }
+        const b = new Blob([csv], {type:'text/csv'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`MindMesh_${type}.csv`; a.click();
+    }
+
+    confetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        
+        const particles = [];
+        const colors = ['#f43f5e', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
+        
+        for(let i=0; i<150; i++) {
+            particles.push({
+                x: canvas.width/2, y: canvas.height/2,
+                w: Math.random()*10+5, h: Math.random()*10+5,
+                color: colors[Math.floor(Math.random()*colors.length)],
+                vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20 - 10,
+                grav: 0.5, rot: Math.random()*360, rotSpd: (Math.random()-0.5)*10
+            });
+        }
+
+        let frame = 0;
+        const animate = () => {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy; p.vy += p.grav; p.rot += p.rotSpd;
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180);
+                ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+            });
+            frame++;
+            if(frame < 200) requestAnimationFrame(animate);
+            else ctx.clearRect(0,0,canvas.width,canvas.height);
+        };
+        animate();
+    }
+}
+
+window.onload = () => { window.app = new App(); window.app.init(); };
+</script>
+</body>
+</html>
